@@ -1,0 +1,5 @@
+{
+    "project": "graphs",
+    "cpp": "c++20",
+    "dependencies": [ "../_Libs/sfml.static" ]
+}
