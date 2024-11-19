@@ -1,7 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <vector>
-#include "graph.h"
+#include "graph/graph.h"
 
 #include "gui/editbox.h"
 

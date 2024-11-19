@@ -1,5 +1,5 @@
 #include <SFML/Graphics.hpp>
-#include "graph.h"
+#include "graph/graph.h"
 #include "editor.h"
 #include "settings.h"
 #include "files.h"
@@ -39,19 +39,18 @@ int main(int argc, char** argv) {
         switch (event.type) {
             case sf::Event::Closed:
                 window.close();
-                break;
+                return 0;
             case sf::Event::KeyPressed:
                 if (event.key.code == sf::Keyboard::S && event.key.control) {
                     auto f = saveFileName(window.getSystemHandle(), "Graph File (*.graph)\0*.graph\0");
-                    graph.save_to_file(f.path.string());
+                    graph.save_to_file(f.path.replace_extension().generic_string() + ".graph");
                 }
                 if (event.key.code == sf::Keyboard::E && event.key.control) {
                     auto f = saveFileName(window.getSystemHandle(), "PNG Image (*.png)\0*.png\0");
                     texture.clear(sf::Color::White);
                     graph.draw(texture);
                     texture.display();
-                    export_image(f.path.string(), texture.getTexture(), 20);
-                    // export image
+                    export_image(f.path.replace_extension().generic_string() + ".png", texture.getTexture(), 20);
                 }
                 break;
             default:

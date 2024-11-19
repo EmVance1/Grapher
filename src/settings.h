@@ -1,6 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include "graph.h"
+#include "graph/graph.h"
 
 #include "gui/toggle.h"
 #include "gui/slider.h"

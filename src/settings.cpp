@@ -28,6 +28,7 @@ void GraphSettings::handle_event(const sf::Event& event) {
     }
 
     directed.handle_event(event);
+    graph->directed = directed.get_value();
     lineweight.handle_event(event);
     fontsize.handle_event(event);
 }
