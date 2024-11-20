@@ -19,7 +19,6 @@ public:
     GraphEditor(Graph* _graph);
 
     void handle_event(const sf::Event& event);
-    void refresh_graph(const sf::Window& window);
     void draw(sf::RenderTarget& target);
 };
 

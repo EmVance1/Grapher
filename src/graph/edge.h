@@ -8,7 +8,6 @@ class Edge {
 private:
     sf::RectangleShape shape;
     sf::CircleShape point;
-    inline static float RADIUS = 3;
 
 private:
     void place_edge(const sf::Vector2f& begin, const sf::Vector2f& end, bool directed);
@@ -21,14 +20,14 @@ public:
     std::string from;
     std::string to;
 
-    void update(const Graph* graph);
+    void refresh_edge(const Graph* graph);
+    void refresh_lineweight();
 
     bool operator==(const Edge& other) const { return from == other.from && to == other.to; }
     bool operator!=(const Edge& other) const { return !(*this == other); }
 
-    friend class GraphSettings;
-    friend class Graph;
     friend class Vertex;
+    friend class Graph;
 };
 
 
@@ -39,5 +38,4 @@ namespace std {
         }
     };
 }
-
 

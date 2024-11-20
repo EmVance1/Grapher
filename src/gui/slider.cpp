@@ -52,11 +52,16 @@ void Slider::decrement() {
 }
 
 
-void Slider::handle_event(const sf::Event& event) {
+bool Slider::handle_event(const sf::Event& event) {
     switch (event.type) {
     case sf::Event::MouseButtonPressed:
         if (bounds.contains((float)event.mouseButton.x, (float)event.mouseButton.y)) {
             held = true;
+        } else if (scale.getGlobalBounds().contains((float)event.mouseButton.x, (float)event.mouseButton.y)) {
+            held = true;
+            bounds.left = (float)event.mouseButton.x;
+            apply_value();
+            return true;
         }
         break;
     case sf::Event::MouseButtonReleased:
@@ -66,11 +71,12 @@ void Slider::handle_event(const sf::Event& event) {
         if (held) {
             bounds.left = (float)event.mouseMove.x;
             apply_value();
+            return true;
         }
-        break;
     default:
         break;
     }
+    return false;
 }
 
 void Slider::draw(sf::RenderTarget& target) const {

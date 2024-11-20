@@ -46,7 +46,7 @@ void EditBox::set_active(const std::string& val) {
     cursor.setPosition(value.getPosition() + sf::Vector2f(value.getGlobalBounds().width, 0));
 }
 
-void EditBox::handle_event(const sf::Event& event) {
+bool EditBox::handle_event(const sf::Event& event) {
     switch (event.type) {
     case sf::Event::KeyPressed:
         if (event.key.code == sf::Keyboard::Return) {
@@ -55,15 +55,15 @@ void EditBox::handle_event(const sf::Event& event) {
             value.setString(value.getString().substring(0, value.getString().getSize() - 1));
             cursor.setPosition(value.getPosition() + sf::Vector2f(value.getGlobalBounds().width, 0));
         }
-        break;
+        return true;
     case sf::Event::TextEntered:
         if (event.text.unicode >= 32) {
             value.setString(value.getString() + event.text.unicode);
             cursor.setPosition(value.getPosition() + sf::Vector2f(value.getGlobalBounds().width, 0));
         }
-        break;
+        return true;
     default:
-        break;
+        return false;
     }
 }
 

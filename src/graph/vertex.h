@@ -9,13 +9,13 @@ enum class GridSnap {
 };
 
 
+class Edge;
 class Graph;
 
 class Vertex {
 private:
     sf::CircleShape shape;
     sf::Text content;
-    static inline constexpr uint32_t RADIUS = 40;
 
 public:
     Vertex();
@@ -24,6 +24,7 @@ public:
     friend class Graph;
 
     std::string id;
+    std::vector<Edge> edges;
 
     void set_position(const sf::Vector2f& pos, GridSnap snap = GridSnap::Grid);
     sf::Vector2f get_position() const;

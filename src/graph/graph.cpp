@@ -14,7 +14,7 @@ void Graph::load_from_file(const std::string& filename) {
     std::vector<Vertex*> verts;
     for (int i = 0; std::getline(f, line); i++) {
         if (i == 0) {
-            directed = (bool)std::atoi(line.c_str());
+            m_directed = (bool)std::atoi(line.c_str());
         } else if (i == 1) {
             count = std::atoi(line.c_str());
         } else if (i-1 > count) {
@@ -42,10 +42,10 @@ void Graph::load_from_file(const std::string& filename) {
 
 void Graph::save_to_file(const std::string& filename) {
     std::ofstream f(filename);
-    f << directed << '\n' << vertices.size() << '\n';
+    f << m_directed << '\n' << m_vertices.size() << '\n';
     std::unordered_map<std::string, size_t> indices;
     size_t i = 0;
-    for (const auto& [_, v] : vertices) {
+    for (const auto& [_, v] : m_vertices) {
         if (v.content.getString() == "") {
             f << v.get_position().x << " " << v.get_position().y << " " << "$\n";
         } else {
@@ -54,30 +54,27 @@ void Graph::save_to_file(const std::string& filename) {
         indices[v.id] = i;
         i++;
     }
-    for (const auto& e : edges) {
-        f << indices[e.from] << " " << indices[e.to] << '\n';
+    for (const auto& [_, v] : m_vertices) {
+        for (const auto& e : v.edges) {
+            f << indices[e.from] << " " << indices[e.to] << '\n';
+        }
     }
-}
-
-
-void Graph::set_is_directed(bool _directed) {
-    directed = _directed;
 }
 
 
 Vertex* Graph::add_vertex(const sf::Vector2f& position, const std::string& value) {
     Vertex vertex = Vertex(position, value);
-    vertices[vertex.id] = vertex;
-    return &vertices[vertex.id];
+    m_vertices[vertex.id] = vertex;
+    return &m_vertices[vertex.id];
 }
 
 bool Graph::has_vertex(const std::string& id) const {
-    return vertices.find(id) != vertices.end();
+    return m_vertices.find(id) != m_vertices.end();
 }
 
 const Vertex* Graph::get_vertex(const std::string& id) const {
-    auto n = vertices.find(id);
-    if (n != vertices.end()) {
+    auto n = m_vertices.find(id);
+    if (n != m_vertices.end()) {
         return &n->second;
     } else {
         return nullptr;
@@ -85,8 +82,8 @@ const Vertex* Graph::get_vertex(const std::string& id) const {
 }
 
 Vertex* Graph::get_vertex_mut(const std::string& id) {
-    auto n = vertices.find(id);
-    if (n != vertices.end()) {
+    auto n = m_vertices.find(id);
+    if (n != m_vertices.end()) {
         return &n->second;
     } else {
         return nullptr;
@@ -94,27 +91,23 @@ Vertex* Graph::get_vertex_mut(const std::string& id) {
 }
 
 void Graph::remove_vertex(const std::string& id) {
-    for (int i = (int)edges.size() - 1; i >= 0; i--) {
-        if (edges[i].to == id || edges[i].from == id) {
-            edges.erase(edges.begin() + i);
+    for (auto& [_, v] : m_vertices) {
+        for (int i = (int)v.edges.size() - 1; i >= 0; i--) {
+            if (v.edges[i].to == id) {
+                v.edges.erase(v.edges.begin() + i);
+            }
         }
     }
-    vertices.erase(id);
+    m_vertices.erase(id);
 }
 
 Vertex* Graph::pick_vertex(const sf::Vector2f& position) {
-    for (auto& [_, v] : vertices) {
+    for (auto& [_, v] : m_vertices) {
         if (v.contains(position)) {
             return &v;
         }
     }
     return nullptr;
-}
-
-void Graph::update_edges() {
-    for (auto& e : edges) {
-        e.update(this);
-    }
 }
 
 
@@ -124,14 +117,14 @@ void Graph::connect(const std::string& v, const std::string& w) {
 
 void Graph::connect(Vertex* v, Vertex* w) {
     if (!v || !w) return;
-    Edge to = Edge{ *v, *w, directed };
-    if (std::find(edges.begin(), edges.end(), to) == edges.end()) {
-        edges.push_back(to);
+    Edge to = Edge{ *v, *w, m_directed };
+    if (std::find(v->edges.begin(), v->edges.end(), to) == v->edges.end()) {
+        v->edges.push_back(to);
     }
-    if (!directed) {
-        Edge from = Edge{ *w, *v, directed };
-        if (std::find(edges.begin(), edges.end(), from) == edges.end()) {
-            edges.push_back(from);
+    if (!m_directed) {
+        Edge from = Edge{ *w, *v, m_directed };
+        if (std::find(w->edges.begin(), w->edges.end(), from) == w->edges.end()) {
+            w->edges.push_back(from);
         }
     }
 }
@@ -142,26 +135,29 @@ void Graph::disconnect(const std::string& v, const std::string& w) {
 
 void Graph::disconnect(Vertex* v, Vertex* w) {
     if (!v || !w) return;
-    auto to = std::find(edges.begin(), edges.end(), Edge{ *v, *w, directed });
-    if (to != edges.end()) {
-        edges.erase(to);
+    auto to = std::find(v->edges.begin(), v->edges.end(), Edge{ *v, *w, m_directed });
+    if (to != v->edges.end()) {
+        v->edges.erase(to);
     }
-    if (!directed) {
-        auto from = std::find(edges.begin(), edges.end(), Edge{ *w, *v, directed });
-        if (from != edges.end())
-            edges.erase(from);
+    if (!m_directed) {
+        auto from = std::find(w->edges.begin(), w->edges.end(), Edge{ *w, *v, m_directed });
+        if (from != w->edges.end()) {
+            w->edges.erase(from);
+        }
     }
 }
 
 
 void Graph::draw(sf::RenderTarget& target) const {
-    for (const auto& e : edges) {
-        target.draw(e.shape);
-        if (directed) {
-            target.draw(e.point);
+    for (const auto& [_, v] : m_vertices) {
+        for (const auto& e : v.edges) {
+            target.draw(e.shape);
+            if (m_directed) {
+                target.draw(e.point);
+            }
         }
     }
-    for (const auto& [_, v] : vertices) {
+    for (const auto& [_, v] : m_vertices) {
         target.draw(v.shape);
         target.draw(v.content);
     }

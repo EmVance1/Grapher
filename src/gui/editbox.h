@@ -20,7 +20,7 @@ public:
     void set_active(const std::string& val);
     bool is_focused() { return focus; }
 
-    void handle_event(const sf::Event& event);
+    bool handle_event(const sf::Event& event);
     void draw(sf::RenderTarget& target) const;
 };
 

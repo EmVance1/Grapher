@@ -15,16 +15,16 @@ void Edge::place_edge(const sf::Vector2f& begin, const sf::Vector2f& end, bool d
     const auto dir = end - begin;
     const auto pos = begin.x < end.x ? begin : end;
     const auto len = vector_length(dir);
-    shape.setSize(sf::Vector2f(len, RADIUS));
+    shape.setSize(sf::Vector2f(len, Graph::get_lineweight()));
     shape.setPosition(pos);
 
     if (std::abs(dir.x) < 0.01f) {
         if (end.y > begin.y) {
-            shape.move(RADIUS * -0.5f, 0.f);
+            shape.move(Graph::get_lineweight() * -0.5f, 0.f);
             shape.setRotation(-90.f);
             point.setRotation(-90.f + 30.f);
         } else {
-            shape.move(RADIUS * 0.5f, 0.f);
+            shape.move(Graph::get_lineweight() * 0.5f, 0.f);
             shape.setRotation(90.f);
             point.setRotation(90.f + 30.f);
         }
@@ -40,7 +40,7 @@ void Edge::place_edge(const sf::Vector2f& begin, const sf::Vector2f& end, bool d
     if (directed) {
         const auto rev = sf::Vector2f(-dir.y, dir.x) / len * 5.f;
         shape.move(rev);
-        point.setPosition(end - (dir / len * (45.f + RADIUS)) + rev);
+        point.setPosition(end - (dir / len * (45.f + Graph::get_lineweight())) + rev);
     }
 }
 
@@ -58,11 +58,15 @@ Edge::Edge(const Vertex& _from, const Vertex& _to, bool directed): from(_from.id
 Edge::Edge(const Edge& other): shape(other.shape), point(other.point), from(other.from), to(other.to) {}
 
 
-void Edge::update(const Graph* graph) {
+void Edge::refresh_edge(const Graph* graph) {
     place_edge(
         graph->get_vertex(from)->get_position(),
         graph->get_vertex(to)->get_position(),
         graph->is_directed()
     );
+}
+
+void Edge::refresh_lineweight() {
+    shape.setSize(sf::Vector2f(shape.getSize().x, Graph::get_lineweight()));
 }
 

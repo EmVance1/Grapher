@@ -68,17 +68,22 @@ void GraphEditor::handle_event(const sf::Event& event) {
     case sf::Event::MouseButtonReleased:
         clicked = false;
         break;
+    case sf::Event::MouseMoved:
+        if (selected.size() == 1) {
+            if (clicked) {
+                selected[0]->set_position(sf::Vector2f((float)event.mouseMove.x, (float)event.mouseMove.y));
+                for (auto& [_, v] : graph->m_vertices) {
+                    for (auto& e : v.edges) {
+                        if (e.to == selected[0]->id || e.from == selected[0]->id) {
+                            e.refresh_edge(graph);
+                        }
+                    }
+                }
+            }
+        }
+        break;
     default:
         break;
-    }
-}
-
-void GraphEditor::refresh_graph(const sf::Window& window) {
-    if (selected.size() == 1) {
-        if (clicked) {
-            selected[0]->set_position((sf::Vector2f)sf::Mouse::getPosition(window));
-            graph->update_edges();
-        }
     }
 }
 

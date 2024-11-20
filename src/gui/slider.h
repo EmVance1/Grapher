@@ -22,7 +22,7 @@ public:
     void increment();
     void decrement();
 
-    void handle_event(const sf::Event& event);
+    bool handle_event(const sf::Event& event);
     void draw(sf::RenderTarget& target) const;
 };
 

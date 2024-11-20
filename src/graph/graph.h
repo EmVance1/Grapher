@@ -1,7 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <string>
-#include <vector>
 #include <unordered_map>
 #include "vertex.h"
 #include "edge.h"
@@ -9,21 +8,26 @@
 
 class Graph {
 private:
-    std::unordered_map<std::string, Vertex> vertices;
-    std::vector<Edge> edges;
-    bool directed;
+    std::unordered_map<std::string, Vertex> m_vertices;
+    bool m_directed;
+
+    inline static float s_lineweight = 3.f;
+    inline static float s_vertex_radius = 40.f;
 
 public:
-    Graph(bool _directed = false): directed(_directed) {}
+    Graph(bool directed = false): m_directed(directed) {}
 
     static void init_font();
     static const sf::Font& get_font();
 
+    static float get_lineweight() { return s_lineweight; }
+    static float get_vertex_radius() { return s_vertex_radius; };
+
     void load_from_file(const std::string& filename);
     void save_to_file(const std::string& filename);
 
-    void set_is_directed(bool _directed);
-    bool is_directed() const { return directed; }
+    void set_directed(bool directed) { m_directed = directed; }
+    bool is_directed() const { return m_directed; }
 
     Vertex* add_vertex(const sf::Vector2f& position, const std::string& value = "");
     bool has_vertex(const std::string& id) const;
@@ -32,17 +36,17 @@ public:
     void remove_vertex(const std::string& id);
 
     Vertex* pick_vertex(const sf::Vector2f& position);
-    void update_edges();
 
     void connect(const std::string& v, const std::string& w);
     void connect(Vertex* v, Vertex* w);
     void disconnect(const std::string& v, const std::string& w);
     void disconnect(Vertex* v, Vertex* w);
 
-    size_t size() const { return vertices.size(); }
+    size_t size() const { return m_vertices.size(); }
 
     void draw(sf::RenderTarget& target) const;
 
     friend class GraphSettings;
+    friend class GraphEditor;
 };
 

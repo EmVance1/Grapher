@@ -24,7 +24,7 @@ ToggleButton::ToggleButton(const sf::Vector2f& pos, const std::string& value, co
     bounds.height = 30;
 }
 
-void ToggleButton::handle_event(const sf::Event& event) {
+bool ToggleButton::handle_event(const sf::Event& event) {
     switch (event.type) {
     case sf::Event::MouseButtonPressed:
         if (bounds.contains((float)event.mouseButton.x, (float)event.mouseButton.y)) {
@@ -34,11 +34,12 @@ void ToggleButton::handle_event(const sf::Event& event) {
             } else {
                 shape.setFillColor(sf::Color::White);
             }
+            return true;
         }
-        break;
     default:
         break;
     }
+    return false;
 }
 
 void ToggleButton::draw(sf::RenderTarget& target) const {

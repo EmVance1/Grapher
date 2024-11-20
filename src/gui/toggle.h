@@ -14,7 +14,7 @@ public:
 
     bool get_value() const { return set; }
 
-    void handle_event(const sf::Event& event);
+    bool handle_event(const sf::Event& event);
     void draw(sf::RenderTarget& target) const;
 };
 

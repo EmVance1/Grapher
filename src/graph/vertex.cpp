@@ -7,10 +7,11 @@
 Vertex::Vertex(): id(uuid::generate_v4()) {}
 
 Vertex::Vertex(const sf::Vector2f& pos, const std::string& value): id(uuid::generate_v4()) {
-    shape.setRadius(RADIUS);
+    shape.setRadius(Graph::get_vertex_radius());
     shape.setFillColor(sf::Color::White);
-    shape.setOutlineThickness(Edge::RADIUS);
+    shape.setOutlineThickness(Graph::get_lineweight());
     shape.setOutlineColor(sf::Color::Black);
+    shape.setOrigin(sf::Vector2f(Graph::get_vertex_radius(), Graph::get_vertex_radius()));
 
     content.setString(value);
     content.setFont(Graph::get_font());
@@ -44,13 +45,13 @@ void Vertex::set_position(const sf::Vector2f& pos, GridSnap snap) {
     default:
         break;
     }
-    shape.setPosition(sf::Vector2f(p.x - RADIUS, p.y - RADIUS));
+    shape.setPosition(p);
     const auto bounds = content.getGlobalBounds();
     content.setPosition(sf::Vector2f(p.x - bounds.width / 2, p.y - bounds.height));
 }
 
 sf::Vector2f Vertex::get_position() const {
-    return sf::Vector2f(shape.getPosition().x + RADIUS, shape.getPosition().y + RADIUS);
+    return shape.getPosition();
 }
 
 void Vertex::set_value(const std::string& val) {
@@ -63,6 +64,6 @@ void Vertex::set_value(const std::string& val) {
 bool Vertex::contains(const sf::Vector2f& pos) const {
     const auto center = get_position();
     const auto dir = pos - center;
-    return dir.x * dir.x + dir.y * dir.y < RADIUS * RADIUS;
+    return dir.x * dir.x + dir.y * dir.y < Graph::get_vertex_radius() * Graph::get_vertex_radius();
 }
 
