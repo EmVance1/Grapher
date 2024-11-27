@@ -19,8 +19,8 @@ static sf::Image cropped(const sf::Image& img, uint32_t margin) {
     auto result = sf::Image();
     result.create(bounds.width + (int)margin * 2, bounds.height + (int)margin * 2, sf::Color::White);
 
-    for (int y = 0; y < bounds.height; y++) {
-        for (int x = 0; x < bounds.width; x++) {
+    for (int y = -1; y < bounds.height + 2; y++) {
+        for (int x = -1; x < bounds.width + 2; x++) {
             const auto p = img.getPixel(x + bounds.left, y + bounds.top);
             result.setPixel(x + margin, y + margin, p);
         }

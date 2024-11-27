@@ -2,6 +2,8 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <filesystem>
+#include <Windows.h>
 
 
 static sf::Font CMU_SERIF;
@@ -165,7 +167,13 @@ void Graph::draw(sf::RenderTarget& target) const {
 
 
 void Graph::init_font() {
-    CMU_SERIF.loadFromFile("C:/users/ayv20/cpp/graphs/res/cmunbx.ttf");
+    WCHAR path[MAX_PATH] = { 0 };
+    GetModuleFileNameW(NULL, path, MAX_PATH);
+    std::filesystem::path p(path);
+    p = p.parent_path();
+    if (!CMU_SERIF.loadFromFile(p.generic_string() + "/res/cmunbx.ttf")) {
+        CMU_SERIF.loadFromFile(p.parent_path().parent_path().generic_string() + "/res/cmunbx.ttf");
+    }
 }
 
 const sf::Font& Graph::get_font() {
