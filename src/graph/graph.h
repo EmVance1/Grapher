@@ -6,13 +6,18 @@
 #include "edge.h"
 
 
+#define LINEWEIGHT 1.5f
+
+
 class Graph {
 private:
     std::unordered_map<std::string, Vertex> m_vertices;
     bool m_directed;
 
-    inline static float s_lineweight = 3.f;
-    inline static float s_vertex_radius = 40.f;
+    inline static uint32_t s_fontsize = 26;
+
+    inline static uint32_t maj_ver = 0;
+    inline static uint32_t min_ver = 1;
 
 public:
     Graph(bool directed = false): m_directed(directed) {}
@@ -20,11 +25,11 @@ public:
     static void init_font();
     static const sf::Font& get_font();
 
-    static float get_lineweight() { return s_lineweight; }
-    static float get_vertex_radius() { return s_vertex_radius; };
+    static uint32_t get_fontsize() { return s_fontsize; };
 
     void load_from_file(const std::string& filename);
-    void save_to_file(const std::string& filename);
+    void save_to_file(const std::string& filename) const;
+    void export_svg(const std::string& filename) const;
 
     void set_directed(bool directed) { m_directed = directed; }
     bool is_directed() const { return m_directed; }

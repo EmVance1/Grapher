@@ -32,6 +32,8 @@ public:
     const sf::String& get_value() const { return content.getString(); }
     bool contains(const sf::Vector2f& pos) const;
 
+    std::string as_svg_element(const sf::Vector2f& offset) const;
+
     bool operator==(const Vertex& other) const { return id == other.id; }
     bool operator!=(const Vertex& other) const { return !(*this == other); }
 

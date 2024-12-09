@@ -1,5 +1,5 @@
+#include "pch.h"
 #include "img.h"
-#include <SFML/Graphics.hpp>
 
 
 static sf::Image cropped(const sf::Image& img, uint32_t margin);

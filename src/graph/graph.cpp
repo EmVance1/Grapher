@@ -1,9 +1,6 @@
+#include "pch.h"
 #include "graph.h"
-#include <fstream>
-#include <iostream>
-#include <sstream>
-#include <filesystem>
-#include <Windows.h>
+#include "editor/settings.h"
 
 
 static sf::Font CMU_SERIF;
@@ -16,10 +13,15 @@ void Graph::load_from_file(const std::string& filename) {
     std::vector<Vertex*> verts;
     for (int i = 0; std::getline(f, line); i++) {
         if (i == 0) {
-            m_directed = (bool)std::atoi(line.c_str());
+            maj_ver = line[0] - '0';
+            min_ver = line[2] - '0';
         } else if (i == 1) {
+            s_fontsize = std::atoi(line.c_str());
+        } else if (i == 2) {
+            m_directed = (bool)std::atoi(line.c_str());
+        } else if (i == 3) {
             count = std::atoi(line.c_str());
-        } else if (i-1 > count) {
+        } else if (i-3 > count) {
             std::stringstream stream(line);
             int v = 0;
             int w = 0;
@@ -29,21 +31,20 @@ void Graph::load_from_file(const std::string& filename) {
             std::stringstream stream(line);
             float x = 0;
             float y = 0;
+            stream >> x >> y;
             std::string val = "";
-            stream >> x >> y >> val;
-            if (val == "$") {
-                Vertex* v = add_vertex(sf::Vector2f(x, y));
-                verts.push_back(v);
-            } else {
-                Vertex* v = add_vertex(sf::Vector2f(x, y), val);
-                verts.push_back(v);
-            }
+            std::getline(stream, val);
+            while (val[0] == ' ') val.erase(val.begin());
+            Vertex* v = add_vertex(sf::Vector2f(x, y), val);
+            verts.push_back(v);
         }
     }
 }
 
-void Graph::save_to_file(const std::string& filename) {
+void Graph::save_to_file(const std::string& filename) const {
     std::ofstream f(filename);
+    f << maj_ver << '.' << maj_ver << '\n';
+    f << s_fontsize << '\n';
     f << m_directed << '\n' << m_vertices.size() << '\n';
     std::unordered_map<std::string, size_t> indices;
     size_t i = 0;
@@ -61,6 +62,39 @@ void Graph::save_to_file(const std::string& filename) {
             f << indices[e.from] << " " << indices[e.to] << '\n';
         }
     }
+}
+
+void Graph::export_svg(const std::string& filename) const {
+    sf::Vector2f min = sf::Vector2f(10000.f, 10000.f);
+    sf::Vector2f max = sf::Vector2f(0.f, 0.f);
+    for (const auto& [_, v] : m_vertices) {
+        if (v.get_position().x - 60.f < min.x) {
+            min.x = v.get_position().x - 60.f;
+        }
+        if (v.get_position().y - 60.f < min.y) {
+            min.y = v.get_position().y - 60.f;
+        }
+        if (v.get_position().x + 60.f > max.x) {
+            max.x = v.get_position().x + 60.f;
+        }
+        if (v.get_position().y + 60.f > max.y) {
+            max.y = v.get_position().y + 60.f;
+        }
+    }
+
+    std::ofstream f(filename);
+    f << "<svg version=\"1.1\" width=\"" + std::to_string((max - min).x)
+                        + "\" height=\"" + std::to_string((max - min).y) + "\" xmlns=\"http://www.w3.org/2000/svg\">\n\n";
+    for (const auto& [_, v] : m_vertices) {
+        for (const auto& e : v.edges) {
+            f << e.as_svg_element(this, min);
+        }
+    }
+    for (const auto& [_, v] : m_vertices) {
+        f << v.as_svg_element(min);
+    }
+    f << "\n</svg>";
+    f.close();
 }
 
 
@@ -171,8 +205,8 @@ void Graph::init_font() {
     GetModuleFileNameW(NULL, path, MAX_PATH);
     std::filesystem::path p(path);
     p = p.parent_path();
-    if (!CMU_SERIF.loadFromFile(p.generic_string() + "/res/cmunbx.ttf")) {
-        CMU_SERIF.loadFromFile(p.parent_path().parent_path().generic_string() + "/res/cmunbx.ttf");
+    if (!CMU_SERIF.loadFromFile(p.generic_string() + "/res/cmunrm.ttf")) {
+        CMU_SERIF.loadFromFile(p.parent_path().parent_path().generic_string() + "/res/cmunrm.ttf");
     }
 }
 

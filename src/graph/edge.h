@@ -1,6 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 
+
 class Vertex;
 class Graph;
 
@@ -22,6 +23,8 @@ public:
 
     void refresh_edge(const Graph* graph);
     void refresh_lineweight();
+
+    std::string as_svg_element(const Graph* graph, const sf::Vector2f& offset) const;
 
     bool operator==(const Edge& other) const { return from == other.from && to == other.to; }
     bool operator!=(const Edge& other) const { return !(*this == other); }

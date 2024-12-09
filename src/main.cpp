@@ -1,7 +1,7 @@
-#include <SFML/Graphics.hpp>
+#include "pch.h"
 #include "graph/graph.h"
-#include "editor.h"
-#include "settings.h"
+#include "editor/editor.h"
+#include "editor/settings.h"
 #include "files.h"
 #include "img.h"
 
@@ -64,6 +64,7 @@ int main(int argc, char** argv) {
     GraphSettings settings = GraphSettings(&graph);
 
     texture.clear(sf::Color::White);
+    texture.draw(grid);
     graph.draw(texture);
     editor.draw(texture);
     settings.draw(texture);
@@ -86,13 +87,17 @@ int main(int argc, char** argv) {
                     }
                 }
                 if (event.key.code == sf::Keyboard::E && event.key.control) {
-                    auto f = saveFileName(window.getSystemHandle(), "PNG Image (*.png)\0*.png\0");
+                    auto f = saveFileName(window.getSystemHandle(), "PNG Image (*.png)\0*.png\0SVG Image (*.svg)\0*.svg\0");
                     auto stem = f.path.replace_extension().generic_string();
                     if (!stem.empty()) {
                         texture.clear(sf::Color::White);
                         graph.draw(texture);
                         texture.display();
-                        export_image(stem + ".png", texture.getTexture(), 20);
+                        if (f.type == 0) {
+                            export_image(stem + ".png", texture.getTexture(), 20);
+                        } else {
+                            graph.export_svg(stem + ".svg");
+                        }
                     }
                 }
                 break;

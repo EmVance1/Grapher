@@ -1,5 +1,5 @@
+#include "pch.h"
 #include "files.h"
-#include <Windows.h>
 
 
 File openFileName(sf::WindowHandle handle, const char* filter, const std::string& defaultname) {
