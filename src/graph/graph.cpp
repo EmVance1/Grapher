@@ -94,7 +94,6 @@ void Graph::export_svg(const std::string& filename) const {
         f << v.as_svg_element(min);
     }
     f << "\n</svg>";
-    f.close();
 }
 
 
