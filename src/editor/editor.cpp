@@ -2,8 +2,10 @@
 #include "editor.h"
 
 
-GraphEditor::GraphEditor(Graph* _graph): graph(_graph),
-    nodeval(sf::Vector2f(250, 200), "new value", Graph::get_font(), "")
+GraphEditor::GraphEditor(Graph* _graph, const sf::RenderTexture* texture)
+    : graph(_graph),
+    nodeval(sf::Vector2f(250, 200), "new value", Graph::get_font(), ""),
+    renderer(texture)
 {
     highlight.setRadius(40);
     highlight.setFillColor(sf::Color::Transparent);
@@ -11,7 +13,7 @@ GraphEditor::GraphEditor(Graph* _graph): graph(_graph),
     highlight.setOutlineThickness(3);
 }
 
-void GraphEditor::handle_event(const sf::Event& event) {
+void GraphEditor::handle_event(const sf::Event& event, const sf::View& graphview) {
     if (nodeval.is_focused()) {
         nodeval.handle_event(event);
         if (!nodeval.is_focused()) {
@@ -46,20 +48,23 @@ void GraphEditor::handle_event(const sf::Event& event) {
         break;
     case sf::Event::MouseButtonPressed:
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl)) {
-            Vertex* s = graph->add_vertex(sf::Vector2f((float)event.mouseButton.x, (float)event.mouseButton.y));
+            const auto mapped = renderer->mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), graphview);
+            Vertex* s = graph->add_vertex(mapped);
             for (auto& v : selected) {
                 graph->connect(v, s);
             }
             selected.clear();
             selected.push_back(s);
         } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) {
-            Vertex* s = graph->pick_vertex(sf::Vector2f((float)event.mouseButton.x, (float)event.mouseButton.y));
+            const auto mapped = renderer->mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), graphview);
+            Vertex* s = graph->pick_vertex(mapped);
             if (s && std::find(selected.begin(), selected.end(), s) == selected.end()) {
                 selected.push_back(s);
             }
         } else {
             selected.clear();
-            Vertex* s = graph->pick_vertex(sf::Vector2f((float)event.mouseButton.x, (float)event.mouseButton.y));
+            const auto mapped = renderer->mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), graphview);
+            Vertex* s = graph->pick_vertex(mapped);
             if (s) {
                 selected.push_back(s);
             }
@@ -72,7 +77,8 @@ void GraphEditor::handle_event(const sf::Event& event) {
     case sf::Event::MouseMoved:
         if (selected.size() == 1) {
             if (clicked) {
-                selected[0]->set_position(sf::Vector2f((float)event.mouseMove.x, (float)event.mouseMove.y));
+                const auto mapped = renderer->mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y), graphview);
+                selected[0]->set_position(mapped);
                 for (auto& [_, v] : graph->m_vertices) {
                     for (auto& e : v.edges) {
                         if (e.to == selected[0]->id || e.from == selected[0]->id) {

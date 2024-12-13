@@ -14,11 +14,12 @@ private:
     Graph* graph;
 
     EditBox nodeval;
+    const sf::RenderTexture* renderer;
 
 public:
-    GraphEditor(Graph* _graph);
+    GraphEditor(Graph* _graph, const sf::RenderTexture* texture);
 
-    void handle_event(const sf::Event& event);
+    void handle_event(const sf::Event& event, const sf::View& graphview);
     void draw(sf::RenderTarget& target);
 };
 

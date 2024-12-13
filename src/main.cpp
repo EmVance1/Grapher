@@ -1,3 +1,4 @@
+#include "SFML/Graphics/Rect.hpp"
 #include "pch.h"
 #include "graph/graph.h"
 #include "editor/editor.h"
@@ -6,16 +7,30 @@
 #include "img.h"
 
 
-sf::VertexArray get_grid() {
-    sf::VertexArray va = sf::VertexArray(sf::Lines);
+float down_to_nearest(float x, int m) {
+    return x - (float)((int)x % m);
+}
 
-    for (int i = 25; i < 800; i += 50) {
-        va.append(sf::Vertex(sf::Vector2f((float)i, 0), sf::Color(150, 150, 150)));
-        va.append(sf::Vertex(sf::Vector2f((float)i, 800), sf::Color(150, 150, 150)));
+
+sf::VertexArray get_grid(const sf::Vector2f& begin, const sf::Vector2f& end) {
+    sf::VertexArray va = sf::VertexArray(sf::Lines);
+    float diff = 50.f;
+    if (end.x - begin.x > 2000.f) {
+        diff = 100.f;
     }
-    for (int i = 25; i < 800; i += 50) {
-        va.append(sf::Vertex(sf::Vector2f(0, (float)i), sf::Color(150, 150, 150)));
-        va.append(sf::Vertex(sf::Vector2f(800, (float)i), sf::Color(150, 150, 150)));
+    if (end.x - begin.x > 4000.f) {
+        diff = 200.f;
+    }
+
+    // horizontal
+    for (float y = down_to_nearest(begin.y, (int)diff) + 25.f; y < end.y; y += diff) {
+        va.append(sf::Vertex(sf::Vector2f(begin.x, y), sf::Color(150, 150, 150)));
+        va.append(sf::Vertex(sf::Vector2f(end.x,   y), sf::Color(150, 150, 150)));
+    }
+    // vertical
+    for (float x = down_to_nearest(begin.x, (int)diff) + 25.f; x < end.x; x += diff) {
+        va.append(sf::Vertex(sf::Vector2f(x, begin.y), sf::Color(150, 150, 150)));
+        va.append(sf::Vertex(sf::Vector2f(x, end.y),   sf::Color(150, 150, 150)));
     }
 
     return va;
@@ -51,7 +66,7 @@ int main(int argc, char** argv) {
     texture.create(800, 800, ctx);
     texture.setSmooth(true);
 
-    const auto grid = get_grid();
+    auto grid = get_grid(sf::Vector2f(0.f, 0.f), sf::Vector2f(800.f, 800.f));
 
     Graph::init_font();
     Graph graph = Graph(false);
@@ -60,13 +75,16 @@ int main(int argc, char** argv) {
     } else {
         graph.load_from_file("res/test.graph");
     }
-    GraphEditor editor = GraphEditor(&graph);
+    GraphEditor editor = GraphEditor(&graph, &texture);
     GraphSettings settings = GraphSettings(&graph);
+    sf::View graphview = texture.getDefaultView();
 
     texture.clear(sf::Color::White);
+    texture.setView(graphview);
     texture.draw(grid);
     graph.draw(texture);
     editor.draw(texture);
+    texture.setView(texture.getDefaultView());
     settings.draw(texture);
     texture.display();
 
@@ -101,16 +119,35 @@ int main(int argc, char** argv) {
                     }
                 }
                 break;
+            case sf::Event::MouseWheelScrolled:
+                if (event.mouseWheelScroll.delta > 0) {
+                    auto p = sf::Vector2f((float)event.mouseWheelScroll.x, (float)event.mouseWheelScroll.y);
+                    auto begin = texture.mapPixelToCoords((sf::Vector2i)(p), graphview);
+                    graphview.zoom(0.9f);
+                    auto end = texture.mapPixelToCoords((sf::Vector2i)(p), graphview);
+                    graphview.move(begin - end);
+                    grid = get_grid(graphview.getCenter() - graphview.getSize() * 0.5f, graphview.getCenter() + graphview.getSize() * 0.5f);
+                } else {
+                    auto p = sf::Vector2f((float)event.mouseWheelScroll.x, (float)event.mouseWheelScroll.y);
+                    auto begin = texture.mapPixelToCoords((sf::Vector2i)(p), graphview);
+                    graphview.zoom(1.1f);
+                    auto end = texture.mapPixelToCoords((sf::Vector2i)(p), graphview);
+                    graphview.move(begin - end);
+                    grid = get_grid(graphview.getCenter() - graphview.getSize() * 0.5f, graphview.getCenter() + graphview.getSize() * 0.5f);
+                }
+                break;
             default:
                 break;
         }
-        editor.handle_event(event);
+        editor.handle_event(event, graphview);
         settings.handle_event(event);
 
         texture.clear(sf::Color::White);
+        texture.setView(graphview);
         texture.draw(grid);
         graph.draw(texture);
         editor.draw(texture);
+        texture.setView(texture.getDefaultView());
         settings.draw(texture);
         texture.display();
 

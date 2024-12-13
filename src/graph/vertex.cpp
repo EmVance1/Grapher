@@ -47,7 +47,7 @@ void Vertex::set_position(const sf::Vector2f& pos, GridSnap snap) {
     }
     shape.setPosition(p);
     const auto bounds = content.getGlobalBounds();
-    content.setPosition(sf::Vector2f(p.x - bounds.width / 2, p.y - bounds.height / 2 + 10));
+    content.setPosition(sf::Vector2f(p.x - bounds.width / 2, p.y - bounds.height));
 }
 
 sf::Vector2f Vertex::get_position() const {
@@ -56,8 +56,8 @@ sf::Vector2f Vertex::get_position() const {
 
 void Vertex::set_value(const std::string& val) {
     content.setString(val);
-    const auto bounds = content.getGlobalBounds();
     const auto pos = get_position();
+    const auto bounds = content.getGlobalBounds();
     content.setPosition(sf::Vector2f(pos.x - bounds.width / 2, pos.y - bounds.height));
 }
 
