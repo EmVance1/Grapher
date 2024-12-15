@@ -51,7 +51,8 @@ void Vertex::set_position(const sf::Vector2f& pos, GridSnap snap) {
 }
 
 sf::Vector2f Vertex::get_position() const {
-    return shape.getPosition();
+    const auto pos = shape.getPosition();
+    return sf::Vector2f(std::floor(pos.x), std::floor(pos.y));
 }
 
 void Vertex::set_value(const std::string& val) {
