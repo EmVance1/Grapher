@@ -4,42 +4,34 @@
 #include "graph.h"
 
 
-template<typename T>
-static T vector_length(const sf::Vector2<T>& vec) {
-    return std::sqrt(vec.x * vec.x + vec.y * vec.y);
-}
-
-constexpr float TO_DEGREES = 180.f / 3.14159f;
-
-
 void Edge::place_edge(const sf::Vector2f& begin, const sf::Vector2f& end, bool directed) {
     const auto dir = end - begin;
     const auto pos = begin.x < end.x ? begin : end;
-    const auto len = vector_length(dir);
+    const auto len = dir.length();
     shape.setSize(sf::Vector2f(len, LINEWEIGHT));
     shape.setPosition(pos);
 
-    if (std::abs(dir.x) < 0.01f) {
+    if (std::abs(dir.x) < 0.001f) {
         if (end.y > begin.y) {
-            shape.move(LINEWEIGHT * -0.5f, 0.f);
-            shape.setRotation(-90.f);
-            point.setRotation(-90.f + 30.f);
+            shape.move({LINEWEIGHT * -0.5f, 0.f});
+            shape.setRotation(sf::degrees(-90.f));
+            point.setRotation(sf::degrees(-90.f + 30.f));
         } else {
-            shape.move(LINEWEIGHT * 0.5f, 0.f);
-            shape.setRotation(90.f);
-            point.setRotation(90.f + 30.f);
+            shape.move({LINEWEIGHT * 0.5f, 0.f});
+            shape.setRotation(sf::degrees(90.f));
+            point.setRotation(sf::degrees(90.f + 30.f));
         }
     } else {
         const float calc = std::atan(dir.y / dir.x);
-        shape.setRotation(TO_DEGREES * calc);
-        point.setRotation(TO_DEGREES * calc + 30.f);
+        shape.setRotation(sf::radians(calc));
+        point.setRotation(sf::radians(calc) + sf::degrees(30.f));
     }
     if (dir.x > 0.1f) {
-        point.setRotation(point.getRotation() + 180.f);
+        point.setRotation(point.getRotation() + sf::degrees(180.f));
     }
 
     if (directed) {
-        const auto rev = sf::Vector2f(-dir.y, dir.x) / len * 5.f;
+        const auto rev = (dir.perpendicular() / len) * 5.f;
         shape.move(rev);
         point.setPosition(end - (dir / len * (45.f + LINEWEIGHT)) + rev);
     }
@@ -51,7 +43,7 @@ Edge::Edge(const Vertex& _from, const Vertex& _to, bool directed): from(_from.id
     point.setFillColor(sf::Color::Black);
     point.setPointCount(3);
     point.setRadius(7);
-    point.setOrigin(7, 7);
+    point.setOrigin({7, 7});
 
     place_edge(_from.get_position(), _to.get_position(), directed);
 }
@@ -77,7 +69,7 @@ std::string Edge::as_svg_element(const Graph* graph, const sf::Vector2f& offset)
     const auto directed = graph->is_directed();
 
     const auto dir = end - begin;
-    const auto len = vector_length(dir);
+    const auto len = dir.length();
 
     if (directed) {
         const auto rev = sf::Vector2f(-dir.y, dir.x) / len * 5.f;
@@ -97,7 +89,7 @@ std::string Edge::as_svg_element(const Graph* graph, const sf::Vector2f& offset)
         }
         elem += "\" transform=\"translate(" + std::to_string(point.getPosition().x - offset.x)
                                      + ", " + std::to_string(point.getPosition().y - offset.y)
-                                     + ") rotate(" + std::to_string(point.getRotation()) + ") translate(-7, -7)\"";
+                                     + ") rotate(" + std::to_string(point.getRotation().asDegrees()) + ") translate(-7, -7)\"";
 
         return elem + " fill=\"black\" />\n";
     } else {

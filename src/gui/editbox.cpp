@@ -2,7 +2,10 @@
 #include "editbox.h"
 
 
-EditBox::EditBox(const sf::Vector2f& pos, const std::string& _value, const sf::Font& font, std::string init) {
+EditBox::EditBox(const sf::Vector2f& pos, const std::string& _value, const sf::Font& font, std::string init)
+    : value(font, init, 25),
+    label(font, _value, 25)
+{
     window.setPosition(pos);
     window.setSize(sf::Vector2f(300, 80));
     window.setOutlineThickness(1);
@@ -24,48 +27,41 @@ EditBox::EditBox(const sf::Vector2f& pos, const std::string& _value, const sf::F
     cursor.setFillColor(sf::Color::Black);
 
     label.setPosition(pos + sf::Vector2f(30, 0));
-    label.setCharacterSize(25);
     label.setFillColor(sf::Color::Black);
-    label.setFont(font);
-    label.setString(_value);
 
     value.setPosition(pos + sf::Vector2f(30, 40));
-    value.setCharacterSize(25);
     value.setFillColor(sf::Color::Black);
-    value.setFont(font);
-    value.setString(init);
 
-    bounds.left = pos.x + 25;
-    bounds.top = pos.y + 40;
-    bounds.width = 250;
-    bounds.height = 30;
+    bounds.position.x = pos.x + 25;
+    bounds.position.y = pos.y + 40;
+    bounds.size.x = 250;
+    bounds.size.y = 30;
 }
 
 void EditBox::set_active(const std::string& val) {
     focus = true;
     value.setString(val);
-    cursor.setPosition(value.getPosition() + sf::Vector2f(value.getGlobalBounds().width, 0));
+    cursor.setPosition(value.getPosition() + sf::Vector2f(value.getGlobalBounds().size.x, 0));
 }
 
 bool EditBox::handle_event(const sf::Event& event) {
-    switch (event.type) {
-    case sf::Event::KeyPressed:
-        if (event.key.code == sf::Keyboard::Return) {
+    if (const auto press = event.getIf<sf::Event::KeyPressed>()) {
+        if (press->code == sf::Keyboard::Key::Enter) {
             focus = false;
-        } else if (event.key.code == sf::Keyboard::BackSpace) {
+        } else if (press->code == sf::Keyboard::Key::Backspace) {
             value.setString(value.getString().substring(0, value.getString().getSize() - 1));
-            cursor.setPosition(value.getPosition() + sf::Vector2f(value.getGlobalBounds().width, 0));
+            cursor.setPosition(value.getPosition() + sf::Vector2f(value.getGlobalBounds().size.x, 0));
         }
         return true;
-    case sf::Event::TextEntered:
-        if (event.text.unicode >= 32) {
-            value.setString(value.getString() + event.text.unicode);
-            cursor.setPosition(value.getPosition() + sf::Vector2f(value.getGlobalBounds().width, 0));
+    } else if (const auto text = event.getIf<sf::Event::TextEntered>()) {
+        if (text->unicode >= 32) {
+            value.setString(value.getString() + text->unicode);
+            cursor.setPosition(value.getPosition() + sf::Vector2f(value.getGlobalBounds().size.x, 0));
         }
         return true;
-    default:
-        return false;
     }
+
+    return false;
 }
 
 void EditBox::draw(sf::RenderTarget& target) const {
@@ -75,5 +71,4 @@ void EditBox::draw(sf::RenderTarget& target) const {
     target.draw(value);
     target.draw(cursor);
 }
-
 

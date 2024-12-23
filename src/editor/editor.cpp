@@ -22,62 +22,58 @@ void GraphEditor::handle_event(const sf::Event& event, const sf::View& graphview
         return;
     }
 
-    switch (event.type) {
-    case sf::Event::KeyPressed:
-        switch (event.key.code) {
-        case sf::Keyboard::J:
+    if (const auto kpress = event.getIf<sf::Event::KeyPressed>()) {
+        switch (kpress->code) {
+        case sf::Keyboard::Key::J:
             if (selected.size() == 2) {
                 graph->connect(selected[0], selected[1]);
             }
             break;
-        case sf::Keyboard::X:
+        case sf::Keyboard::Key::X:
             if (selected.size() == 2) {
                 graph->disconnect(selected[0], selected[1]);
-            } else if (selected.size() == 1 && event.key.control) {
+            } else if (selected.size() == 1 && kpress->control) {
                 graph->remove_vertex(selected[0]->id);
                 selected.clear();
             }
             break;
-        case sf::Keyboard::I:
-            if (selected.size() == 1 && event.key.control) {
+        case sf::Keyboard::Key::I:
+            if (selected.size() == 1 && kpress->control) {
                 nodeval.set_active(selected[0]->get_value());
             }
         default:
             break;
         }
-        break;
-    case sf::Event::MouseButtonPressed:
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl)) {
-            const auto mapped = renderer->mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), graphview);
+    } else if (const auto mpress = event.getIf<sf::Event::MouseButtonPressed>()) {
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LControl)) {
+            const auto mapped = renderer->mapPixelToCoords(sf::Vector2i(mpress->position.x, mpress->position.y), graphview);
             Vertex* s = graph->add_vertex(mapped);
             for (auto& v : selected) {
                 graph->connect(v, s);
             }
             selected.clear();
             selected.push_back(s);
-        } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) {
-            const auto mapped = renderer->mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), graphview);
+        } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LShift)) {
+            const auto mapped = renderer->mapPixelToCoords(sf::Vector2i(mpress->position.x, mpress->position.y), graphview);
             Vertex* s = graph->pick_vertex(mapped);
             if (s && std::find(selected.begin(), selected.end(), s) == selected.end()) {
                 selected.push_back(s);
             }
         } else {
             selected.clear();
-            const auto mapped = renderer->mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), graphview);
+            const auto mapped = renderer->mapPixelToCoords(sf::Vector2i(mpress->position.x, mpress->position.y), graphview);
             Vertex* s = graph->pick_vertex(mapped);
             if (s) {
                 selected.push_back(s);
             }
             clicked = true;
         }
-        break;
-    case sf::Event::MouseButtonReleased:
+    } else if (event.is<sf::Event::MouseButtonReleased>()) {
         clicked = false;
-        break;
-    case sf::Event::MouseMoved:
+    } else if (const auto move = event.getIf<sf::Event::MouseMoved>()) {
         if (selected.size() == 1) {
             if (clicked) {
-                const auto mapped = renderer->mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y), graphview);
+                const auto mapped = renderer->mapPixelToCoords(sf::Vector2i(move->position.x, move->position.y), graphview);
                 selected[0]->set_position(mapped);
                 for (auto& [_, v] : graph->m_vertices) {
                     for (auto& e : v.edges) {
@@ -88,9 +84,6 @@ void GraphEditor::handle_event(const sf::Event& event, const sf::View& graphview
                 }
             }
         }
-        break;
-    default:
-        break;
     }
 }
 

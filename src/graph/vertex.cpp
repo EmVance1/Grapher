@@ -4,19 +4,22 @@
 #include "edge.h"
 
 
-Vertex::Vertex(): id(Uuid::generate_v4()) {}
+Vertex::Vertex()
+    : content(Graph::get_font(), "", Graph::get_fontsize()),
+    id(Uuid::generate_v4())
+{}
 
-Vertex::Vertex(const sf::Vector2f& pos, const std::string& value): id(Uuid::generate_v4()) {
+Vertex::Vertex(const sf::Vector2f& pos, const std::string& value)
+    : content(Graph::get_font(), value, Graph::get_fontsize()),
+    id(Uuid::generate_v4())
+{
     shape.setRadius(40.f);
     shape.setFillColor(sf::Color::White);
     shape.setOutlineThickness(LINEWEIGHT);
     shape.setOutlineColor(sf::Color::Black);
     shape.setOrigin(sf::Vector2f(40.f, 40.f));
 
-    content.setString(value);
-    content.setFont(Graph::get_font());
     content.setStyle(sf::Text::Regular);
-    content.setCharacterSize(Graph::get_fontsize());
     content.setFillColor(sf::Color::Black);
 
     set_position(pos);
@@ -49,7 +52,7 @@ void Vertex::set_position(const sf::Vector2f& pos, GridSnap snap) {
     p.y = std::floor(p.y);
     shape.setPosition(p);
     const auto bounds = content.getGlobalBounds();
-    content.setPosition(sf::Vector2f(p.x - bounds.width / 2, p.y - bounds.height));
+    content.setPosition(sf::Vector2f(p.x - bounds.size.x / 2, p.y - bounds.size.y));
 }
 
 sf::Vector2f Vertex::get_position() const {
@@ -60,7 +63,7 @@ void Vertex::set_value(const std::string& val) {
     content.setString(val);
     const auto pos = get_position();
     const auto bounds = content.getGlobalBounds();
-    content.setPosition(sf::Vector2f(pos.x - bounds.width / 2, pos.y - bounds.height));
+    content.setPosition(sf::Vector2f(pos.x - bounds.size.x / 2, pos.y - bounds.size.y));
 }
 
 bool Vertex::contains(const sf::Vector2f& pos) const {
@@ -79,7 +82,6 @@ std::string Vertex::as_svg_element(const sf::Vector2f& offset) const {
                + std::to_string(content.getCharacterSize()) + "\" font-style=\"italic\" text-anchor=\"middle\" fill=\"black\">"
                + content.getString() + "</text>\n";
 
-    // TODO: IMPLEMENT AUTO-CROPPING
-
     return elem;
 }
+
