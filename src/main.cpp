@@ -1,4 +1,3 @@
-#include "SFML/Graphics/Rect.hpp"
 #include "pch.h"
 #include "graph/graph.h"
 #include "editor/editor.h"
@@ -68,6 +67,8 @@ int main(int argc, char** argv) {
 
     auto grid = get_grid(sf::Vector2f(0.f, 0.f), sf::Vector2f(800.f, 800.f));
 
+    sf::Font _font;
+    Graph::CMU_SERIF = &_font;
     Graph::init_font();
     Graph graph = Graph(false);
     if (argc == 2) {
@@ -97,7 +98,7 @@ int main(int argc, char** argv) {
         switch (event.type) {
             case sf::Event::Closed:
                 window.close();
-                break;
+                return 69;
             case sf::Event::Resized:
                 windowview.setSize((float)event.size.width, (float)event.size.height);
                 windowview.setCenter((float)event.size.width * 0.5f, (float)event.size.height * 0.5f);
@@ -146,6 +147,7 @@ int main(int argc, char** argv) {
             default:
                 break;
         }
+
         editor.handle_event(event, graphview);
         settings.handle_event(event);
 

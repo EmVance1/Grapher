@@ -20,6 +20,8 @@ private:
     inline static uint32_t min_ver = 1;
 
 public:
+    inline static sf::Font* CMU_SERIF;
+
     Graph(bool directed = false): m_directed(directed) {}
 
     static void init_font();

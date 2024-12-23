@@ -1,6 +1,6 @@
 {
     "project": "vertex",
-    "cpp": "c++20",
+    "cpp": "c++17",
     "pch": "pch.h",
     "dependencies": [ "../_Libs/SFML-msvc.static_windows" ],
 

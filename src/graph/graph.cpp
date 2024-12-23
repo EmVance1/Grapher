@@ -1,9 +1,8 @@
 #include "pch.h"
 #include "graph.h"
-#include "editor/settings.h"
 
 
-static sf::Font CMU_SERIF;
+// sf::Font Graph::CMU_SERIF;
 
 
 void Graph::load_from_file(const std::string& filename) {
@@ -204,12 +203,12 @@ void Graph::init_font() {
     GetModuleFileNameW(NULL, path, MAX_PATH);
     std::filesystem::path p(path);
     p = p.parent_path();
-    if (!CMU_SERIF.loadFromFile(p.generic_string() + "/res/cmunrm.ttf")) {
-        CMU_SERIF.loadFromFile(p.parent_path().parent_path().generic_string() + "/res/cmunrm.ttf");
+    if (!CMU_SERIF->loadFromFile(p.generic_string() + "/res/cmunrm.ttf")) {
+        CMU_SERIF->loadFromFile(p.parent_path().parent_path().generic_string() + "/res/cmunrm.ttf");
     }
 }
 
 const sf::Font& Graph::get_font() {
-    return CMU_SERIF;
+    return *CMU_SERIF;
 }
 
