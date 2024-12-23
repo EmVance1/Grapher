@@ -14,7 +14,7 @@ ToggleButton::ToggleButton(const sf::Vector2f& pos, const std::string& value, co
     }
 
     label.setPosition(pos + sf::Vector2f(40, 0));
-    label.setCharacterSize(20);
+    label.setCharacterSize(25);
     label.setFillColor(sf::Color::Black);
     label.setFont(font);
     label.setString(value);

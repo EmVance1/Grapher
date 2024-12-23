@@ -63,7 +63,7 @@ int main(int argc, char** argv) {
     window.setFramerateLimit(60);
     sf::Event event;
     sf::RenderTexture texture;
-    texture.create(800, 800, ctx);
+    texture.create(1920, 1280, ctx);
     texture.setSmooth(true);
 
     auto grid = get_grid(sf::Vector2f(0.f, 0.f), sf::Vector2f(800.f, 800.f));
@@ -78,13 +78,15 @@ int main(int argc, char** argv) {
     GraphEditor editor = GraphEditor(&graph, &texture);
     GraphSettings settings = GraphSettings(&graph);
     sf::View graphview = texture.getDefaultView();
+    const sf::View guiview = texture.getDefaultView();
+    sf::View windowview = window.getDefaultView();
 
     texture.clear(sf::Color::White);
     texture.setView(graphview);
     texture.draw(grid);
     graph.draw(texture);
     editor.draw(texture);
-    texture.setView(texture.getDefaultView());
+    texture.setView(guiview);
     settings.draw(texture);
     texture.display();
 
@@ -95,7 +97,12 @@ int main(int argc, char** argv) {
         switch (event.type) {
             case sf::Event::Closed:
                 window.close();
-                return 0;
+                break;
+            case sf::Event::Resized:
+                windowview.setSize((float)event.size.width, (float)event.size.height);
+                windowview.setCenter((float)event.size.width * 0.5f, (float)event.size.height * 0.5f);
+                grid = get_grid(graphview.getCenter() - graphview.getSize() * 0.5f, graphview.getCenter() + graphview.getSize() * 0.5f);
+                break;
             case sf::Event::KeyPressed:
                 if (event.key.code == sf::Keyboard::S && event.key.control) {
                     auto f = saveFileName(window.getSystemHandle(), "Graph File (*.graph)\0*.graph\0");
@@ -147,10 +154,11 @@ int main(int argc, char** argv) {
         texture.draw(grid);
         graph.draw(texture);
         editor.draw(texture);
-        texture.setView(texture.getDefaultView());
+        texture.setView(guiview);
         settings.draw(texture);
         texture.display();
 
+        window.setView(windowview);
         window.draw(sf::Sprite(texture.getTexture()));
         window.display();
     }

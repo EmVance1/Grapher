@@ -7,7 +7,7 @@ GraphSettings::GraphSettings(Graph* _graph): graph(_graph),
     fontsize(sf::Vector2f(300, 10), "Fontsize", Graph::get_font(), ((float)graph->get_fontsize()-1.f) / 39.f)
 {
     toolbar.setPosition(sf::Vector2f(0, 0));
-    toolbar.setSize(sf::Vector2f(800, 50));
+    toolbar.setSize(sf::Vector2f(2000, 50));
     toolbar.setFillColor(sf::Color(100, 150, 200));
     toolbar.setOutlineThickness(1);
     toolbar.setOutlineColor(sf::Color::Black);

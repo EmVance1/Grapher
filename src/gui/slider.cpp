@@ -29,7 +29,7 @@ Slider::Slider(const sf::Vector2f& pos, const std::string& _value, const sf::Fon
     shape.setFillColor(sf::Color(50, 75, 100));
 
     label.setPosition(pos + sf::Vector2f(210, 0));
-    label.setCharacterSize(20);
+    label.setCharacterSize(25);
     label.setFillColor(sf::Color::Black);
     label.setFont(font);
     label.setString(_value);

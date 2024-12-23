@@ -24,13 +24,13 @@ EditBox::EditBox(const sf::Vector2f& pos, const std::string& _value, const sf::F
     cursor.setFillColor(sf::Color::Black);
 
     label.setPosition(pos + sf::Vector2f(30, 0));
-    label.setCharacterSize(20);
+    label.setCharacterSize(25);
     label.setFillColor(sf::Color::Black);
     label.setFont(font);
     label.setString(_value);
 
     value.setPosition(pos + sf::Vector2f(30, 40));
-    value.setCharacterSize(20);
+    value.setCharacterSize(25);
     value.setFillColor(sf::Color::Black);
     value.setFont(font);
     value.setString(init);
