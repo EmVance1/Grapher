@@ -58,13 +58,13 @@ sf::VertexArray get_hex() {
 int main(int argc, char** argv) {
     sf::ContextSettings ctx;
     ctx.antiAliasingLevel = 16;
-    auto window = sf::RenderWindow(sf::VideoMode({1280, 720}), "Graphs", sf::Style::Default, sf::State::Windowed, ctx);
+    auto window = sf::RenderWindow(sf::VideoMode({800, 800}), "Graphs", sf::Style::Default, sf::State::Windowed, ctx);
     window.setFramerateLimit(60);
     auto texture = sf::RenderTexture();
-    std::ignore = texture.resize({1920, 1280}, ctx);
+    texture.resize({1920, 1280}, ctx);
     texture.setSmooth(true);
 
-    auto grid = get_grid(sf::Vector2f(0.f, 0.f), sf::Vector2f(1280.f, 720.f));
+    auto grid = get_grid(sf::Vector2f(0.f, 0.f), sf::Vector2f(800.f, 800.f));
 
     sf::Font _font;
     Graph::CMU_SERIF = &_font;
@@ -125,7 +125,6 @@ int main(int argc, char** argv) {
                     }
                 }
             }
-
         } else if (const auto scroll = event->getIf<sf::Event::MouseWheelScrolled>()) {
             if (scroll->delta > 0) {
                 auto p = sf::Vector2f((float)scroll->position.x, (float)scroll->position.y);
