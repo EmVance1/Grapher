@@ -19,7 +19,7 @@ GraphSettings::GraphSettings(Graph* _graph): graph(_graph),
         v.content.setCharacterSize((int)((fontsize.get_value() * 20.f) + 20.f));
         const auto pos = v.get_position();
         const auto bounds = v.content.getGlobalBounds();
-        v.content.setPosition(sf::Vector2f(pos.x - bounds.size.x / 2, pos.y - bounds.size.y));
+        v.content.setPosition(sf::Vector2f(pos.x - bounds.width / 2, pos.y - bounds.height));
     }
 }
 
@@ -40,7 +40,7 @@ void GraphSettings::handle_event(const sf::Event& event) {
             v.content.setCharacterSize((int)((fontsize.get_value() * 20.f) + 20.f));
             const auto pos = v.get_position();
             const auto bounds = v.content.getGlobalBounds();
-            v.content.setPosition(sf::Vector2f(pos.x - bounds.size.x / 2, pos.y - bounds.size.y));
+            v.content.setPosition(sf::Vector2f(pos.x - bounds.width / 2, pos.y - bounds.height));
         }
     }
 }

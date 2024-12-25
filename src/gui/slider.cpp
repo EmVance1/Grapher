@@ -3,21 +3,18 @@
 
 
 void Slider::apply_value() {
-    if (bounds.position.x < scale.getPosition().x) {
-        bounds.position.x = scale.getPosition().x;
+    if (bounds.left < scale.getPosition().x) {
+        bounds.left = scale.getPosition().x;
     }
-    if (bounds.position.x > scale.getPosition().x + 180.f) {
-        bounds.position.x = scale.getPosition().x + 180.f;
+    if (bounds.left > scale.getPosition().x + 180.f) {
+        bounds.left = scale.getPosition().x + 180.f;
     }
-    shape.setPosition({bounds.position.x, shape.getPosition().y});
-    value = (bounds.position.x - scale.getPosition().x) / 180.f;
+    shape.setPosition(sf::Vector2f(bounds.left, shape.getPosition().y));
+    value = (bounds.left - scale.getPosition().x) / 180.f;
 }
 
 
-Slider::Slider(const sf::Vector2f& pos, const std::string& _value, const sf::Font& font, float init)
-    : value(init),
-    label(font, _value, 25)
-{
+Slider::Slider(const sf::Vector2f& pos, const std::string& _value, const sf::Font& font, float init): value(init) {
     scale.setPosition(pos);
     scale.setSize(sf::Vector2f(200, 30));
     scale.setOutlineThickness(1);
@@ -32,46 +29,54 @@ Slider::Slider(const sf::Vector2f& pos, const std::string& _value, const sf::Fon
     shape.setFillColor(sf::Color(50, 75, 100));
 
     label.setPosition(pos + sf::Vector2f(210, 0));
+    label.setCharacterSize(25);
     label.setFillColor(sf::Color::Black);
+    label.setFont(font);
+    label.setString(_value);
 
-    bounds.position = pos;
-    bounds.position.x += 180.f * value;
-    bounds.size.x = 20;
-    bounds.size.y = 30;
+    bounds.left = pos.x;
+    bounds.top = pos.y;
+    bounds.width = 20;
+    bounds.height = 30;
+    bounds.left += 180.f * value;
 }
 
 
 void Slider::increment() {
-    bounds.position.x += 10.f;
+    bounds.left += 10.f;
     apply_value();
 }
 
 void Slider::decrement() {
-    bounds.position.x -= 10.f;
+    bounds.left -= 10.f;
     apply_value();
 }
 
 
 bool Slider::handle_event(const sf::Event& event) {
-    if (const auto press = event.getIf<sf::Event::MouseButtonPressed>()) {
-        if (bounds.contains({(float)press->position.x, (float)press->position.x})) {
+    switch (event.type) {
+    case sf::Event::MouseButtonPressed:
+        if (bounds.contains((float)event.mouseButton.x, (float)event.mouseButton.y)) {
             held = true;
-        } else if (scale.getGlobalBounds().contains({(float)press->position.x, (float)press->position.x})) {
+        } else if (scale.getGlobalBounds().contains((float)event.mouseButton.x, (float)event.mouseButton.y)) {
             held = true;
-            bounds.position.x = (float)press->position.x;
+            bounds.left = (float)event.mouseButton.x;
             apply_value();
             return true;
         }
-    } else if (event.is<sf::Event::MouseButtonReleased>()) {
+        break;
+    case sf::Event::MouseButtonReleased:
         held = false;
-    } else if (const auto move = event.getIf<sf::Event::MouseMoved>()) {
+        break;
+    case sf::Event::MouseMoved:
         if (held) {
-            bounds.position.x = (float)move->position.x;
+            bounds.left = (float)event.mouseMove.x;
             apply_value();
             return true;
         }
+    default:
+        break;
     }
-
     return false;
 }
 

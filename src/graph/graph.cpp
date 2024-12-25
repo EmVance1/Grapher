@@ -2,6 +2,9 @@
 #include "graph.h"
 
 
+// sf::Font Graph::CMU_SERIF;
+
+
 void Graph::load_from_file(const std::string& filename) {
     std::ifstream f(filename);
     std::string line;
@@ -195,15 +198,14 @@ void Graph::draw(sf::RenderTarget& target) const {
 }
 
 
-bool Graph::init_font() {
+void Graph::init_font() {
     WCHAR path[MAX_PATH] = { 0 };
     GetModuleFileNameW(NULL, path, MAX_PATH);
     std::filesystem::path p(path);
     p = p.parent_path();
-    if (!CMU_SERIF->openFromFile(p.generic_string() + "/res/cmunrm.ttf")) {
-        return CMU_SERIF->openFromFile(p.parent_path().parent_path().generic_string() + "/res/cmunrm.ttf");
+    if (!CMU_SERIF->loadFromFile(p.generic_string() + "/res/cmunrm.ttf")) {
+        CMU_SERIF->loadFromFile(p.parent_path().parent_path().generic_string() + "/res/cmunrm.ttf");
     }
-    return false;
 }
 
 const sf::Font& Graph::get_font() {

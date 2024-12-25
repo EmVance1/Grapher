@@ -24,7 +24,7 @@ public:
 
     Graph(bool directed = false): m_directed(directed) {}
 
-    static bool init_font();
+    static void init_font();
     static const sf::Font& get_font();
 
     static uint32_t get_fontsize() { return s_fontsize; };

@@ -12,7 +12,7 @@ float down_to_nearest(float x, int m) {
 
 
 sf::VertexArray get_grid(const sf::Vector2f& begin, const sf::Vector2f& end) {
-    sf::VertexArray va = sf::VertexArray(sf::PrimitiveType::Lines);
+    sf::VertexArray va = sf::VertexArray(sf::Lines);
     float diff = 50.f;
     if (end.x - begin.x > 2000.f) {
         diff = 100.f;
@@ -23,32 +23,32 @@ sf::VertexArray get_grid(const sf::Vector2f& begin, const sf::Vector2f& end) {
 
     // horizontal
     for (float y = down_to_nearest(begin.y, (int)diff) + 25.f; y < end.y; y += diff) {
-        va.append({ sf::Vector2f(begin.x, y), sf::Color(150, 150, 150) });
-        va.append({ sf::Vector2f(end.x,   y), sf::Color(150, 150, 150) });
+        va.append(sf::Vertex(sf::Vector2f(begin.x, y), sf::Color(150, 150, 150)));
+        va.append(sf::Vertex(sf::Vector2f(end.x,   y), sf::Color(150, 150, 150)));
     }
     // vertical
     for (float x = down_to_nearest(begin.x, (int)diff) + 25.f; x < end.x; x += diff) {
-        va.append({ sf::Vector2f(x, begin.y), sf::Color(150, 150, 150) });
-        va.append({ sf::Vector2f(x, end.y),   sf::Color(150, 150, 150) });
+        va.append(sf::Vertex(sf::Vector2f(x, begin.y), sf::Color(150, 150, 150)));
+        va.append(sf::Vertex(sf::Vector2f(x, end.y),   sf::Color(150, 150, 150)));
     }
 
     return va;
 }
 
 sf::VertexArray get_hex() {
-    sf::VertexArray va = sf::VertexArray(sf::PrimitiveType::Lines);
+    sf::VertexArray va = sf::VertexArray(sf::Lines);
 
     for (int i = -400; i < 1200; i += 50) {
-        va.append({ sf::Vector2f(0, (float)i),         sf::Color(150, 150, 150) });
-        va.append({ sf::Vector2f(800, (float)i + 400), sf::Color(150, 150, 150) });
+        va.append(sf::Vertex(sf::Vector2f(0, (float)i), sf::Color(150, 150, 150)));
+        va.append(sf::Vertex(sf::Vector2f(800, (float)i + 400), sf::Color(150, 150, 150)));
     }
     for (int i = -400; i < 1200; i += 50) {
-        va.append({ sf::Vector2f(0, (float)i + 400), sf::Color(150, 150, 150) });
-        va.append({ sf::Vector2f(800, (float)i),     sf::Color(150, 150, 150) });
+        va.append(sf::Vertex(sf::Vector2f(0, (float)i + 400), sf::Color(150, 150, 150)));
+        va.append(sf::Vertex(sf::Vector2f(800, (float)i), sf::Color(150, 150, 150)));
     }
     for (int i = 0; i < 800; i += 50) {
-        va.append({ sf::Vector2f((float)i, 0),   sf::Color(150, 150, 150) });
-        va.append({ sf::Vector2f((float)i, 800), sf::Color(150, 150, 150) });
+        va.append(sf::Vertex(sf::Vector2f((float)i, 0), sf::Color(150, 150, 150)));
+        va.append(sf::Vertex(sf::Vector2f((float)i, 800), sf::Color(150, 150, 150)));
     }
 
     return va;
@@ -57,11 +57,12 @@ sf::VertexArray get_hex() {
 
 int main(int argc, char** argv) {
     sf::ContextSettings ctx;
-    ctx.antiAliasingLevel = 16;
-    auto window = sf::RenderWindow(sf::VideoMode({800, 800}), "Graphs", sf::Style::Default, sf::State::Windowed, ctx);
+    ctx.antialiasingLevel = 16;
+    sf::RenderWindow window(sf::VideoMode(800, 800), "Graphs", sf::Style::Default, ctx);
     window.setFramerateLimit(60);
-    auto texture = sf::RenderTexture();
-    texture.resize({1920, 1280}, ctx);
+    sf::Event event;
+    sf::RenderTexture texture;
+    texture.create(1920, 1280, ctx);
     texture.setSmooth(true);
 
     auto grid = get_grid(sf::Vector2f(0.f, 0.f), sf::Vector2f(800.f, 800.f));
@@ -93,60 +94,62 @@ int main(int argc, char** argv) {
     window.draw(sf::Sprite(texture.getTexture()));
     window.display();
 
-    while (const auto event = window.waitEvent()) {
-        if (event->is<sf::Event::Closed>()) {
-            window.close();
-            return 69;
-
-        } else if (const auto resize = event->getIf<sf::Event::Resized>()) {
-            windowview.setSize({(float)resize->size.x, (float)resize->size.y});
-            windowview.setCenter({(float)resize->size.x* 0.5f, (float)resize->size.y * 0.5f});
-            grid = get_grid(graphview.getCenter() - graphview.getSize() * 0.5f, graphview.getCenter() + graphview.getSize() * 0.5f);
-
-        } else if (const auto press = event->getIf<sf::Event::KeyPressed>()) {
-            if (press->code == sf::Keyboard::Key::S && press->control) {
-                auto f = saveFileName(window.getNativeHandle(), "Graph File (*.graph)\0*.graph\0");
-                auto stem = f.path.replace_extension().generic_string();
-                if (!stem.empty()) {
-                    graph.save_to_file(stem + ".graph");
-                }
-            }
-            if (press->code == sf::Keyboard::Key::E && press->control) {
-                auto f = saveFileName(window.getNativeHandle(), "PNG Image (*.png)\0*.png\0SVG Image (*.svg)\0*.svg\0");
-                auto stem = f.path.replace_extension().generic_string();
-                if (!stem.empty()) {
-                    texture.clear(sf::Color::White);
-                    graph.draw(texture);
-                    texture.display();
-                    if (f.type == 0) {
-                        export_image(stem + ".png", texture.getTexture(), 20);
-                    } else {
-                        graph.export_svg(stem + ".svg");
+    while (window.waitEvent(event)) {
+        switch (event.type) {
+            case sf::Event::Closed:
+                window.close();
+                return 69;
+            case sf::Event::Resized:
+                windowview.setSize((float)event.size.width, (float)event.size.height);
+                windowview.setCenter((float)event.size.width * 0.5f, (float)event.size.height * 0.5f);
+                grid = get_grid(graphview.getCenter() - graphview.getSize() * 0.5f, graphview.getCenter() + graphview.getSize() * 0.5f);
+                break;
+            case sf::Event::KeyPressed:
+                if (event.key.code == sf::Keyboard::S && event.key.control) {
+                    auto f = saveFileName(window.getSystemHandle(), "Graph File (*.graph)\0*.graph\0");
+                    auto stem = f.path.replace_extension().generic_string();
+                    if (!stem.empty()) {
+                        graph.save_to_file(stem + ".graph");
                     }
                 }
-            }
-        } else if (const auto scroll = event->getIf<sf::Event::MouseWheelScrolled>()) {
-            if (scroll->delta > 0) {
-                auto p = sf::Vector2f((float)scroll->position.x, (float)scroll->position.y);
-                auto begin = texture.mapPixelToCoords((sf::Vector2i)(p), graphview);
-                graphview.zoom(0.9f);
-                auto end = texture.mapPixelToCoords((sf::Vector2i)(p), graphview);
-                graphview.move(begin - end);
-                grid = get_grid(graphview.getCenter() - graphview.getSize() * 0.5f, graphview.getCenter() + graphview.getSize() * 0.5f);
-            } else {
-                auto p = sf::Vector2f((float)scroll->position.x, (float)scroll->position.y);
-                auto begin = texture.mapPixelToCoords((sf::Vector2i)(p), graphview);
-                graphview.zoom(1.1f);
-                auto end = texture.mapPixelToCoords((sf::Vector2i)(p), graphview);
-                graphview.move(begin - end);
-                grid = get_grid(graphview.getCenter() - graphview.getSize() * 0.5f, graphview.getCenter() + graphview.getSize() * 0.5f);
-            }
+                if (event.key.code == sf::Keyboard::E && event.key.control) {
+                    auto f = saveFileName(window.getSystemHandle(), "PNG Image (*.png)\0*.png\0SVG Image (*.svg)\0*.svg\0");
+                    auto stem = f.path.replace_extension().generic_string();
+                    if (!stem.empty()) {
+                        texture.clear(sf::Color::White);
+                        graph.draw(texture);
+                        texture.display();
+                        if (f.type == 0) {
+                            export_image(stem + ".png", texture.getTexture(), 20);
+                        } else {
+                            graph.export_svg(stem + ".svg");
+                        }
+                    }
+                }
+                break;
+            case sf::Event::MouseWheelScrolled:
+                if (event.mouseWheelScroll.delta > 0) {
+                    auto p = sf::Vector2f((float)event.mouseWheelScroll.x, (float)event.mouseWheelScroll.y);
+                    auto begin = texture.mapPixelToCoords((sf::Vector2i)(p), graphview);
+                    graphview.zoom(0.9f);
+                    auto end = texture.mapPixelToCoords((sf::Vector2i)(p), graphview);
+                    graphview.move(begin - end);
+                    grid = get_grid(graphview.getCenter() - graphview.getSize() * 0.5f, graphview.getCenter() + graphview.getSize() * 0.5f);
+                } else {
+                    auto p = sf::Vector2f((float)event.mouseWheelScroll.x, (float)event.mouseWheelScroll.y);
+                    auto begin = texture.mapPixelToCoords((sf::Vector2i)(p), graphview);
+                    graphview.zoom(1.1f);
+                    auto end = texture.mapPixelToCoords((sf::Vector2i)(p), graphview);
+                    graphview.move(begin - end);
+                    grid = get_grid(graphview.getCenter() - graphview.getSize() * 0.5f, graphview.getCenter() + graphview.getSize() * 0.5f);
+                }
+                break;
+            default:
+                break;
         }
 
-        if (event.has_value()) {
-            editor.handle_event(event.value(), graphview);
-            settings.handle_event(event.value());
-        }
+        editor.handle_event(event, graphview);
+        settings.handle_event(event);
 
         texture.clear(sf::Color::White);
         texture.setView(graphview);
