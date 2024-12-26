@@ -113,16 +113,16 @@ int main(int argc, char** argv) {
                     }
                 }
                 if (event.key.code == sf::Keyboard::E && event.key.control) {
-                    auto f = saveFileName(window.getSystemHandle(), "PNG Image (*.png)\0*.png\0SVG Image (*.svg)\0*.svg\0");
+                    auto f = saveFileName(window.getSystemHandle(), "SVG Image (*.svg)\0*.svg\0PNG Image (*.png)\0*.png\0");
                     auto stem = f.path.replace_extension().generic_string();
                     if (!stem.empty()) {
                         texture.clear(sf::Color::White);
                         graph.draw(texture);
                         texture.display();
                         if (f.type == 0) {
-                            export_image(stem + ".png", texture.getTexture(), 20);
-                        } else {
                             graph.export_svg(stem + ".svg");
+                        } else {
+                            export_image(stem + ".png", texture.getTexture(), 20);
                         }
                     }
                 }
