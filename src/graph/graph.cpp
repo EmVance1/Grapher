@@ -48,11 +48,7 @@ void Graph::save_to_file(const std::string& filename) const {
     std::unordered_map<std::string, size_t> indices;
     size_t i = 0;
     for (const auto& [_, v] : m_vertices) {
-        if (v.content.getString() == "") {
-            f << v.get_position().x << " " << v.get_position().y << " " << "$\n";
-        } else {
-            f << v.get_position().x << " " << v.get_position().y << " " << v.content.getString().toUtf8().c_str() << "\n";
-        }
+        f << v.get_position().x << " " << v.get_position().y << " " << v.content.getString().toUtf8().c_str() << "\n";
         indices[v.id] = i;
         i++;
     }
