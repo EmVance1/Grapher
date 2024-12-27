@@ -76,7 +76,8 @@ std::string Vertex::as_svg_element(const sf::Vector2f& offset) const {
     elem += "\t<text x=\"" + std::to_string(get_position().x - offset.x)
                + "\" y=\"" + std::to_string(get_position().y - offset.y + 10)
                + "\" font-family=\"CMU Serif\" font-size=\""
-               + std::to_string(content.getCharacterSize()) + "\" font-style=\"italic\" text-anchor=\"middle\" fill=\"black\">"
+               + std::to_string(content.getCharacterSize()) + "\" text-anchor=\"middle\" fill=\"black\">"
+               // + std::to_string(content.getCharacterSize()) + "\" font-style=\"italic\" text-anchor=\"middle\" fill=\"black\">"
                + content.getString() + "</text>\n";
 
     // TODO: IMPLEMENT AUTO-CROPPING

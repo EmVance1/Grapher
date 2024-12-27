@@ -116,12 +116,12 @@ int main(int argc, char** argv) {
                     auto f = saveFileName(window.getSystemHandle(), "SVG Image (*.svg)\0*.svg\0PNG Image (*.png)\0*.png\0");
                     auto stem = f.path.replace_extension().generic_string();
                     if (!stem.empty()) {
-                        texture.clear(sf::Color::White);
-                        graph.draw(texture);
-                        texture.display();
-                        if (f.type == 0) {
+                        if (f.type == 1) {
                             graph.export_svg(stem + ".svg");
-                        } else {
+                        } else if (f.type == 2) {
+                            texture.clear(sf::Color::White);
+                            graph.draw(texture);
+                            texture.display();
                             export_image(stem + ".png", texture.getTexture(), 20);
                         }
                     }
