@@ -4,17 +4,26 @@
 #include "graph/graph.h"
 
 #include "gui/editbox.h"
+#include "gui/dropdown.h"
 
 
 class GraphEditor {
 private:
-    sf::CircleShape highlight;
     bool clicked = false;
     std::vector<Vertex*> selected;
     Graph* graph;
 
     EditBox nodeval;
+    Dropdown rightclick;
     const sf::RenderTexture* renderer;
+
+private:
+    bool create_vertex(const sf::Vector2f& pos);
+    bool rename_vertex();
+    bool hide_vertices();
+    bool delete_vertices();
+    bool join_vertices();
+    bool split_vertices();
 
 public:
     GraphEditor(Graph* _graph, const sf::RenderTexture* texture);

@@ -3,8 +3,8 @@
 
 
 GraphSettings::GraphSettings(Graph* _graph): graph(_graph),
-    directed(sf::Vector2f(10, 10), "Directed", Graph::get_font(), graph->is_directed()),
-    fontsize(sf::Vector2f(300, 10), "Fontsize", Graph::get_font(), ((float)graph->get_fontsize()-1.f) / 39.f)
+    directed(sf::Vector2f(10, 10), "Directed", Graph::get_gui_font(), graph->is_directed()),
+    fontsize(sf::Vector2f(250, 10), "Fontsize", Graph::get_gui_font(), ((float)graph->get_fontsize()-1.f) / 39.f)
 {
     toolbar.setPosition(sf::Vector2f(0, 0));
     toolbar.setSize(sf::Vector2f(2000, 50));
@@ -13,34 +13,19 @@ GraphSettings::GraphSettings(Graph* _graph): graph(_graph),
     toolbar.setOutlineColor(sf::Color::Black);
 
     for (auto& [_, v] : graph->m_vertices) {
-        for (auto& e : v.edges) {
-            e.refresh_edge(graph);
-        }
-        v.content.setCharacterSize((int)((fontsize.get_value() * 20.f) + 20.f));
-        const auto pos = v.get_position();
-        const auto bounds = v.content.getGlobalBounds();
-        v.content.setPosition(sf::Vector2f(pos.x - bounds.width / 2, pos.y - bounds.height));
+        v.set_content_size((int)((fontsize.get_value() * 20.f) + 20.f));
     }
 }
 
 void GraphSettings::handle_event(const sf::Event& event) {
-    const bool d_change = directed.handle_event(event);
-    const bool f_change = fontsize.handle_event(event);
+    directed.handle_event(event);
 
     graph->m_directed = directed.get_value();
-    Graph::s_fontsize = (uint32_t)(fontsize.get_value() * 39.f + 1.f);
+    Graph::s_fontsize = (int)(fontsize.get_value() * 20.f + 20.f);
 
-    for (auto& [_, v] : graph->m_vertices) {
-        for (auto& e : v.edges) {
-            if (d_change) {
-                e.refresh_edge(graph);
-            }
-        }
-        if (f_change) {
-            v.content.setCharacterSize((int)((fontsize.get_value() * 20.f) + 20.f));
-            const auto pos = v.get_position();
-            const auto bounds = v.content.getGlobalBounds();
-            v.content.setPosition(sf::Vector2f(pos.x - bounds.width / 2, pos.y - bounds.height));
+    if (fontsize.handle_event(event)) {
+        for (auto& [_, v] : graph->m_vertices) {
+            v.set_content_size(Graph::s_fontsize);
         }
     }
 }
