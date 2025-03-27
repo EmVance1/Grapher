@@ -16,16 +16,18 @@ private:
 
     inline static uint32_t s_fontsize = 26;
 
-    inline static uint32_t maj_ver = 0;
-    inline static uint32_t min_ver = 1;
+    inline static constexpr uint32_t maj_ver = 0;
+    inline static constexpr uint32_t min_ver = 1;
 
 public:
     inline static sf::Font* CMU_SERIF;
+    inline static sf::Font* GUI_FONT;
 
     Graph(bool directed = false): m_directed(directed) {}
 
-    static void init_font();
+    static void init_fonts();
     static const sf::Font& get_font();
+    static const sf::Font& get_gui_font();
 
     static uint32_t get_fontsize() { return s_fontsize; };
 

@@ -9,11 +9,13 @@ void Graph::load_from_file(const std::string& filename) {
     std::ifstream f(filename);
     std::string line;
     int count = 0;
+    int this_maj_ver = 0;
+    int this_min_ver = 0;
     std::vector<Vertex*> verts;
     for (int i = 0; std::getline(f, line); i++) {
         if (i == 0) {
-            maj_ver = line[0] - '0';
-            min_ver = line[2] - '0';
+            this_maj_ver = line[0] - '0';
+            this_min_ver = line[2] - '0';
         } else if (i == 1) {
             s_fontsize = std::atoi(line.c_str());
         } else if (i == 2) {
@@ -30,11 +32,19 @@ void Graph::load_from_file(const std::string& filename) {
             std::stringstream stream(line);
             float x = 0;
             float y = 0;
-            stream >> x >> y;
+            bool hidden = false;
             std::string val = "";
+            if (this_min_ver == 0) {
+                stream >> x >> y;
+            } else {
+                stream >> x >> y >> hidden;
+            }
             std::getline(stream, val);
             while (val[0] == ' ') val.erase(val.begin());
             Vertex* v = add_vertex(sf::Vector2f(x, y), val);
+            if (hidden) {
+                v->toggle_hidden();
+            }
             verts.push_back(v);
         }
     }
@@ -42,19 +52,19 @@ void Graph::load_from_file(const std::string& filename) {
 
 void Graph::save_to_file(const std::string& filename) const {
     std::ofstream f(filename);
-    f << maj_ver << '.' << maj_ver << '\n';
+    f << maj_ver << '.' << min_ver << '\n';
     f << s_fontsize << '\n';
     f << m_directed << '\n' << m_vertices.size() << '\n';
     std::unordered_map<std::string, size_t> indices;
     size_t i = 0;
     for (const auto& [_, v] : m_vertices) {
-        f << v.get_position().x << " " << v.get_position().y << " " << v.content.getString().toUtf8().c_str() << "\n";
+        f << v.get_position().x << " " << v.get_position().y << " " << v.get_hidden() << " " << v.get_value() << "\n";
         indices[v.id] = i;
         i++;
     }
     for (const auto& [_, v] : m_vertices) {
         for (const auto& e : v.edges) {
-            f << indices[e.from] << " " << indices[e.to] << '\n';
+            f << indices[v.id] << " " << indices[e] << '\n';
         }
     }
 }
@@ -82,7 +92,7 @@ void Graph::export_svg(const std::string& filename) const {
                         + "\" height=\"" + std::to_string((max - min).y) + "\" xmlns=\"http://www.w3.org/2000/svg\">\n\n";
     for (const auto& [_, v] : m_vertices) {
         for (const auto& e : v.edges) {
-            f << e.as_svg_element(this, min);
+            f << Edge::create_svg(v, m_vertices.at(e), m_directed, min);
         }
     }
     for (const auto& [_, v] : m_vertices) {
@@ -122,10 +132,14 @@ Vertex* Graph::get_vertex_mut(const std::string& id) {
 
 void Graph::remove_vertex(const std::string& id) {
     for (auto& [_, v] : m_vertices) {
-        for (int i = (int)v.edges.size() - 1; i >= 0; i--) {
-            if (v.edges[i].to == id) {
-                v.edges.erase(v.edges.begin() + i);
+        auto remset = std::unordered_set<std::string>();
+        for (const auto& e : v.edges) {
+            if (e == id) {
+                remset.insert(e);
             }
+        }
+        for (const auto& e : remset) {
+            v.edges.erase(e);
         }
     }
     m_vertices.erase(id);
@@ -147,15 +161,9 @@ void Graph::connect(const std::string& v, const std::string& w) {
 
 void Graph::connect(Vertex* v, Vertex* w) {
     if (!v || !w) return;
-    Edge to = Edge{ *v, *w, m_directed };
-    if (std::find(v->edges.begin(), v->edges.end(), to) == v->edges.end()) {
-        v->edges.push_back(to);
-    }
+    v->edges.insert(w->id);
     if (!m_directed) {
-        Edge from = Edge{ *w, *v, m_directed };
-        if (std::find(w->edges.begin(), w->edges.end(), from) == w->edges.end()) {
-            w->edges.push_back(from);
-        }
+        w->edges.insert(v->id);
     }
 }
 
@@ -165,15 +173,9 @@ void Graph::disconnect(const std::string& v, const std::string& w) {
 
 void Graph::disconnect(Vertex* v, Vertex* w) {
     if (!v || !w) return;
-    auto to = std::find(v->edges.begin(), v->edges.end(), Edge{ *v, *w, m_directed });
-    if (to != v->edges.end()) {
-        v->edges.erase(to);
-    }
+    v->edges.erase(w->id);
     if (!m_directed) {
-        auto from = std::find(w->edges.begin(), w->edges.end(), Edge{ *w, *v, m_directed });
-        if (from != w->edges.end()) {
-            w->edges.erase(from);
-        }
+        w->edges.erase(v->id);
     }
 }
 
@@ -181,20 +183,16 @@ void Graph::disconnect(Vertex* v, Vertex* w) {
 void Graph::draw(sf::RenderTarget& target) const {
     for (const auto& [_, v] : m_vertices) {
         for (const auto& e : v.edges) {
-            target.draw(e.shape);
-            if (m_directed) {
-                target.draw(e.point);
-            }
+            target.draw(Edge::from_vertices(v, m_vertices.at(e), m_directed));
         }
     }
     for (const auto& [_, v] : m_vertices) {
-        target.draw(v.shape);
-        target.draw(v.content);
+        target.draw(v.get_display());
     }
 }
 
 
-void Graph::init_font() {
+void Graph::init_fonts() {
     WCHAR path[MAX_PATH] = { 0 };
     GetModuleFileNameW(NULL, path, MAX_PATH);
     std::filesystem::path p(path);
@@ -202,9 +200,16 @@ void Graph::init_font() {
     if (!CMU_SERIF->loadFromFile(p.generic_string() + "/res/cmunrm.ttf")) {
         CMU_SERIF->loadFromFile(p.parent_path().parent_path().generic_string() + "/res/cmunrm.ttf");
     }
+    if (!GUI_FONT->loadFromFile(p.generic_string() + "/res/ArialNova.ttf")) {
+        GUI_FONT->loadFromFile(p.parent_path().parent_path().generic_string() + "/res/ArialNova.ttf");
+    }
 }
 
 const sf::Font& Graph::get_font() {
     return *CMU_SERIF;
+}
+
+const sf::Font& Graph::get_gui_font() {
+    return *GUI_FONT;
 }
 

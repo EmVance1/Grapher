@@ -4,28 +4,7 @@
 #include "edge.h"
 
 
-Vertex::Vertex(): id(Uuid::generate_v4()) {}
-
-Vertex::Vertex(const sf::Vector2f& pos, const std::string& value): id(Uuid::generate_v4()) {
-    shape.setRadius(40.f);
-    shape.setFillColor(sf::Color::White);
-    shape.setOutlineThickness(LINEWEIGHT);
-    shape.setOutlineColor(sf::Color::Black);
-    shape.setOrigin(sf::Vector2f(40.f, 40.f));
-
-    content.setString(value);
-    content.setFont(Graph::get_font());
-    content.setStyle(sf::Text::Regular);
-    content.setCharacterSize(Graph::get_fontsize());
-    content.setFillColor(sf::Color::Black);
-
-    set_position(pos);
-}
-
-Vertex::Vertex(const Vertex& other): shape(other.shape), content(other.content), id(other.id) {}
-
-
-void Vertex::set_position(const sf::Vector2f& pos, GridSnap snap) {
+void VertexDisplay::set_position(const sf::Vector2f& pos, GridSnap snap) {
     sf::Vector2f p = pos;
     switch (snap) {
     case GridSnap::Grid: {
@@ -47,40 +26,123 @@ void Vertex::set_position(const sf::Vector2f& pos, GridSnap snap) {
     }
     p.x = std::floor(p.x);
     p.y = std::floor(p.y);
-    shape.setPosition(p);
+    circle_shape.setPosition(p);
     const auto bounds = content.getGlobalBounds();
     content.setPosition(sf::Vector2f(p.x - bounds.width / 2, p.y - bounds.height));
 }
 
-sf::Vector2f Vertex::get_position() const {
-    return shape.getPosition();
-}
-
-void Vertex::set_value(const std::string& val) {
+void VertexDisplay::set_value(const std::string& val) {
     content.setString(val);
     const auto pos = get_position();
     const auto bounds = content.getGlobalBounds();
     content.setPosition(sf::Vector2f(pos.x - bounds.width / 2, pos.y - bounds.height));
 }
 
-bool Vertex::contains(const sf::Vector2f& pos) const {
+void VertexDisplay::set_content_size(uint32_t size) {
+    content.setCharacterSize(size);
+    const auto pos = get_position();
+    const auto bounds = content.getGlobalBounds();
+    content.setPosition(sf::Vector2f(pos.x - bounds.width / 2, pos.y - bounds.height));
+}
+
+
+bool VertexDisplay::contains(const sf::Vector2f& pos) const {
     const auto center = get_position();
     const auto dir = pos - center;
     return dir.x * dir.x + dir.y * dir.y < 40.f * 40.f;
+    if (!hidden) {
+        return dir.x * dir.x + dir.y * dir.y < 40.f * 40.f;
+    } else {
+        return dir.x * dir.x + dir.y * dir.y < 20.f * 20.f;
+    }
+}
+
+void VertexDisplay::set_hidden(bool _hidden) {
+    hidden = _hidden;
+    if (hidden) {
+        circle_shape.setFillColor(sf::Color(255, 255, 255, 50));
+        circle_shape.setRadius(20);
+        circle_shape.setOrigin(20, 20);
+        content.setFillColor(sf::Color::Transparent);
+        if (!highlight) {
+            circle_shape.setOutlineColor(sf::Color(0, 0, 0, 50));
+        }
+    } else {
+        circle_shape.setFillColor(sf::Color(255, 255, 255, 255));
+        circle_shape.setRadius(40);
+        circle_shape.setOrigin(40, 40);
+        content.setFillColor(sf::Color::Black);
+        if (!highlight) {
+            circle_shape.setOutlineColor(sf::Color(0, 0, 0, 255));
+        }
+    }
+}
+
+void VertexDisplay::set_highlighted(bool _highlight) {
+    highlight = _highlight;
+    if (highlight) {
+        circle_shape.setOutlineColor(sf::Color(0, 220, 255, 255));
+        circle_shape.setOutlineThickness(3);
+    } else if (hidden) {
+        circle_shape.setOutlineColor(sf::Color(0, 0, 0, 50));
+        circle_shape.setOutlineThickness(LINEWEIGHT);
+    } else {
+        circle_shape.setOutlineColor(sf::Color(0, 0, 0, 255));
+        circle_shape.setOutlineThickness(LINEWEIGHT);
+    }
 }
 
 
-std::string Vertex::as_svg_element(const sf::Vector2f& offset) const {
-    std::string elem = "\t<circle cx=\"" + std::to_string(get_position().x - offset.x)
-                            + "\" cy=\"" + std::to_string(get_position().y - offset.y) + "\" r=\"42\" stroke=\"black\" stroke-width=\"1.5\" fill=\"white\" />\n";
-    elem += "\t<text x=\"" + std::to_string(get_position().x - offset.x)
-               + "\" y=\"" + std::to_string(get_position().y - offset.y + 10)
-               + "\" font-family=\"CMU Serif\" font-size=\""
-               + std::to_string(content.getCharacterSize()) + "\" text-anchor=\"middle\" fill=\"black\">"
-               // + std::to_string(content.getCharacterSize()) + "\" font-style=\"italic\" text-anchor=\"middle\" fill=\"black\">"
-               + content.getString() + "</text>\n";
+std::string VertexDisplay::as_svg_element(const sf::Vector2f& offset) const {
+    if (!hidden) {
+        std::string elem = "\t<circle cx=\"" + std::to_string(get_position().x - offset.x)
+                                + "\" cy=\"" + std::to_string(get_position().y - offset.y) + "\" r=\"42\" stroke=\"black\" stroke-width=\"1.5\" fill=\"white\" />\n";
+        elem += "\t<text x=\"" + std::to_string(get_position().x - offset.x)
+                   + "\" y=\"" + std::to_string(get_position().y - offset.y + 10)
+                   + "\" font-family=\"CMU Serif\" font-size=\""
+                   + std::to_string(content.getCharacterSize()) + "\" text-anchor=\"middle\" fill=\"black\">"
+                   // + std::to_string(content.getCharacterSize()) + "\" font-style=\"italic\" text-anchor=\"middle\" fill=\"black\">"
+                   + content.getString() + "</text>\n";
+        return elem;
+    } else {
+        return "";
+    }
 
-    // TODO: IMPLEMENT AUTO-CROPPING
-
-    return elem;
 }
+
+
+Vertex::Vertex(): id(Uuid::generate_v4()) {}
+
+Vertex::Vertex(const sf::Vector2f& pos, const std::string& value): id(Uuid::generate_v4()) {
+    display.circle_shape.setRadius(40.f);
+    display.circle_shape.setFillColor(sf::Color::White);
+    display.circle_shape.setOutlineThickness(LINEWEIGHT);
+    display.circle_shape.setOutlineColor(sf::Color::Black);
+    display.circle_shape.setOrigin(sf::Vector2f(40.f, 40.f));
+
+    display.content.setFont(Graph::get_font());
+    display.content.setStyle(sf::Text::Regular);
+    display.content.setFillColor(sf::Color::Black);
+
+    set_content_size(Graph::get_fontsize());
+    set_position(pos);
+    set_value(value);
+}
+
+Vertex::Vertex(const Vertex& other): display(other.display), value(other.value), hidden(other.hidden), edges(other.edges), id(other.id) {}
+
+Vertex& Vertex::operator=(const Vertex& other) {
+    display = other.display;
+    value = other.value;
+    hidden = other.hidden;
+    edges = other.edges;
+    id = other.id;
+    return *this;
+}
+
+
+void Vertex::set_hidden(bool _hidden) {
+    hidden = _hidden;
+    display.set_hidden(hidden);
+}
+
