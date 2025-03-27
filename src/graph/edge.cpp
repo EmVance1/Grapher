@@ -53,7 +53,8 @@ Edge Edge::from_vertices(const Vertex& from, const Vertex& to, bool directed) {
 
     if (directed) {
         result.point.setFillColor(sf::Color(0, 0, 0, 255));
-        const auto rev = (to.edges.find(from.id) != to.edges.end()) ? (sf::Vector2f(-dir.y, dir.x) / len * 5.f) : sf::Vector2f(0, 0);
+        const auto pre_rev = sf::Vector2f(-dir.y, dir.x) / len * 5.f;
+        const auto rev = pre_rev * ((to.edges.find(from.id) != to.edges.end()) ? 0.95f : -0.05f);
         result.shape.move(rev);
         result.point.setPosition(end - (dir / len * (45.f + LINEWEIGHT)) + rev);
     } else {

@@ -53,7 +53,7 @@ public:
 
     size_t size() const { return m_vertices.size(); }
 
-    void draw(sf::RenderTarget& target) const;
+    void draw(sf::RenderTarget& target, bool no_hidden = false) const;
 
     friend class GraphSettings;
     friend class GraphEditor;

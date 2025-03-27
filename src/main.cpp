@@ -2,63 +2,15 @@
 #include "graph/graph.h"
 #include "editor/editor.h"
 #include "editor/settings.h"
-#include "files.h"
-#include "img.h"
+#include "util/files.h"
+#include "util/grid.h"
+#include "util/img.h"
 
 #include "log/log.h"
 
 
-float down_to_nearest(float x, int m) {
-    return x - (float)((int)x % m);
-}
-
-
-sf::VertexArray get_grid(const sf::Vector2f& begin, const sf::Vector2f& end) {
-    sf::VertexArray va = sf::VertexArray(sf::Lines);
-    float diff = 50.f;
-    if (end.x - begin.x > 2000.f) {
-        diff = 100.f;
-    }
-    if (end.x - begin.x > 4000.f) {
-        diff = 200.f;
-    }
-
-    // horizontal
-    for (float y = down_to_nearest(begin.y, (int)diff) + 25.f; y < end.y; y += diff) {
-        va.append(sf::Vertex(sf::Vector2f(begin.x, y), sf::Color(150, 150, 150)));
-        va.append(sf::Vertex(sf::Vector2f(end.x,   y), sf::Color(150, 150, 150)));
-    }
-    // vertical
-    for (float x = down_to_nearest(begin.x, (int)diff) + 25.f; x < end.x; x += diff) {
-        va.append(sf::Vertex(sf::Vector2f(x, begin.y), sf::Color(150, 150, 150)));
-        va.append(sf::Vertex(sf::Vector2f(x, end.y),   sf::Color(150, 150, 150)));
-    }
-
-    return va;
-}
-
-sf::VertexArray get_hex() {
-    sf::VertexArray va = sf::VertexArray(sf::Lines);
-
-    for (int i = -400; i < 1200; i += 50) {
-        va.append(sf::Vertex(sf::Vector2f(0, (float)i), sf::Color(150, 150, 150)));
-        va.append(sf::Vertex(sf::Vector2f(800, (float)i + 400), sf::Color(150, 150, 150)));
-    }
-    for (int i = -400; i < 1200; i += 50) {
-        va.append(sf::Vertex(sf::Vector2f(0, (float)i + 400), sf::Color(150, 150, 150)));
-        va.append(sf::Vertex(sf::Vector2f(800, (float)i), sf::Color(150, 150, 150)));
-    }
-    for (int i = 0; i < 800; i += 50) {
-        va.append(sf::Vertex(sf::Vector2f((float)i, 0), sf::Color(150, 150, 150)));
-        va.append(sf::Vertex(sf::Vector2f((float)i, 800), sf::Color(150, 150, 150)));
-    }
-
-    return va;
-}
-
-
 int main(int argc, char** argv) {
-    FILE* _junk = nullptr;
+    // FILE* _junk = nullptr;
     // freopen_s(&_junk, "res/info_log.txt", "w", stdout);
     // freopen_s(&_junk, "res/err_log.txt", "w", stderr);
 
@@ -68,7 +20,7 @@ int main(int argc, char** argv) {
     window.setFramerateLimit(60);
     sf::Event event;
     sf::RenderTexture texture;
-    texture.create(1920, 1280, ctx);
+    texture.create(1920, 1080, ctx);
     texture.setSmooth(true);
 
     auto grid = get_grid(sf::Vector2f(0.f, 0.f), sf::Vector2f(1600.f, 1000.f));
@@ -91,7 +43,7 @@ int main(int argc, char** argv) {
 #endif
     }
     GraphEditor editor = GraphEditor(&graph, &texture);
-    GraphSettings settings = GraphSettings(&graph);
+    GraphSettings settings = GraphSettings(&graph, &window);
     sf::View graphview = texture.getDefaultView();
     const sf::View guiview = texture.getDefaultView();
     sf::View windowview = window.getDefaultView();
@@ -133,8 +85,11 @@ int main(int argc, char** argv) {
                         if (f.type == 1) {
                             graph.export_svg(stem + ".svg");
                         } else if (f.type == 2) {
+                            auto temp = texture.getDefaultView();
+                            temp.zoom(0.8f);
+                            texture.setView(temp);
                             texture.clear(sf::Color::White);
-                            graph.draw(texture);
+                            graph.draw(texture, true);
                             texture.display();
                             export_image(stem + ".png", texture.getTexture(), 20);
                         }

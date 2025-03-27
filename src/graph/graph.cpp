@@ -180,14 +180,16 @@ void Graph::disconnect(Vertex* v, Vertex* w) {
 }
 
 
-void Graph::draw(sf::RenderTarget& target) const {
+void Graph::draw(sf::RenderTarget& target, bool no_hidden) const {
     for (const auto& [_, v] : m_vertices) {
         for (const auto& e : v.edges) {
             target.draw(Edge::from_vertices(v, m_vertices.at(e), m_directed));
         }
     }
     for (const auto& [_, v] : m_vertices) {
-        target.draw(v.get_display());
+        if (!no_hidden || !v.get_hidden()) {
+            target.draw(v.get_display());
+        }
     }
 }
 

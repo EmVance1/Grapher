@@ -4,7 +4,7 @@
 #include "graph/graph.h"
 
 #include "gui/editbox.h"
-#include "gui/dropdown.h"
+#include "gui/list.h"
 
 
 class GraphEditor {
@@ -17,7 +17,7 @@ private:
     bool held = false;
 
     EditBox nodeval;
-    Dropdown rightclick;
+    List rightclick;
     const sf::RenderTexture* renderer;
 
 private:

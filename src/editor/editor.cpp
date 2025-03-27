@@ -174,12 +174,17 @@ void GraphEditor::handle_event(const sf::Event& event, const sf::View& graphview
             held = false;
             highlighter.setFillColor(sf::Color::Transparent);
             highlighter.setOutlineColor(sf::Color::Transparent);
-            selected.clear();
             const auto rect = highlighter.getGlobalBounds();
-            for (auto& [_, v] : graph->m_vertices) {
-                if (v.intersects(rect)) {
-                    v.set_highlighted(true);
-                    selected.push_back(&v);
+            if (rect.width * rect.height > 4.f) {
+                for (auto& v : selected) {
+                    v->set_highlighted(false);
+                }
+                selected.clear();
+                for (auto& [_, v] : graph->m_vertices) {
+                    if (v.intersects(rect)) {
+                        v.set_highlighted(true);
+                        selected.push_back(&v);
+                    }
                 }
             }
         }
