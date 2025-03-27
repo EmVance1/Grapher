@@ -65,7 +65,8 @@ void VertexDisplay::set_value(const std::string& val) {
 }
 
 void VertexDisplay::set_content_size(uint32_t size) {
-    content.setCharacterSize(size);
+    content.setCharacterSize(size * 5);
+    content.setScale(0.3f, 0.3f);
     const auto pos = get_position();
     const auto bounds = content.getGlobalBounds();
     content.setPosition(sf::Vector2f(pos.x - bounds.width / 2, pos.y - bounds.height));
