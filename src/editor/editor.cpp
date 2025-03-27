@@ -45,6 +45,7 @@ bool GraphEditor::delete_vertices() {
         for (const auto& v : selected) {
             graph->remove_vertex(v->id);
         }
+        selected.clear();
         return true;
     }
     return false;
