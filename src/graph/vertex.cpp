@@ -4,6 +4,32 @@
 #include "edge.h"
 
 
+static bool circle_point(const sf::Vector2f& center, float radius, const sf::Vector2f& p) {
+    const auto v = p - center;
+    const auto l = v.x * v.x + v.y * v.y;
+    return l <= radius * radius;
+}
+
+static bool circle_AABB(const sf::Vector2f& center, float radius, const sf::Vector2f& pos, const sf::Vector2f& size) {
+    const auto a = pos;
+    const auto b = pos + sf::Vector2f(size.x, 0);
+    const auto c = pos + size;
+    const auto d = pos + sf::Vector2f(0, size.y);
+    if (circle_point(center, radius, a) || circle_point(center, radius, b) || circle_point(center, radius, c) || circle_point(center, radius, d)) {
+        return true;
+    } else if (center.y > pos.y && center.y < pos.y + size.y) {
+        if (center.x >= pos.x - radius && center.x <= pos.x + size.x + radius) {
+            return true;
+        }
+    } else if (center.x > pos.x && center.x < pos.x + size.x) {
+        if (center.y >= pos.y - radius && center.y <= pos.y + size.y + radius) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
 void VertexDisplay::set_position(const sf::Vector2f& pos, GridSnap snap) {
     sf::Vector2f p = pos;
     switch (snap) {
@@ -56,6 +82,12 @@ bool VertexDisplay::contains(const sf::Vector2f& pos) const {
         return dir.x * dir.x + dir.y * dir.y < 20.f * 20.f;
     }
 }
+
+bool VertexDisplay::intersects(const sf::FloatRect& rect) const {
+    const auto radius = hidden ? 20.f : 40.f;
+    return circle_AABB(get_position(), radius, { rect.left, rect.top }, { rect.width, rect.height });
+}
+
 
 void VertexDisplay::set_hidden(bool _hidden) {
     hidden = _hidden;

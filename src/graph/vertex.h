@@ -27,6 +27,7 @@ struct VertexDisplay : public sf::Drawable {
     const sf::String& get_value() const { return content.getString(); }
     void set_content_size(uint32_t size);
     bool contains(const sf::Vector2f& pos) const;
+    bool intersects(const sf::FloatRect& rect) const;
 
     void set_hidden(bool hidden);
     void set_highlighted(bool highlight);
@@ -65,6 +66,7 @@ public:
     void set_highlighted(bool highlight) { display.set_highlighted(highlight); }
     bool get_highlighted() const { return display.highlight; }
     bool contains(const sf::Vector2f& pos) const { return display.contains(pos); }
+    bool intersects(const sf::FloatRect& rect) const { return display.intersects(rect); }
     void toggle_hidden() { hidden = !hidden; set_hidden(hidden); }
     const VertexDisplay& get_display() const { return display; }
 

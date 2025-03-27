@@ -13,6 +13,9 @@ private:
     std::vector<Vertex*> selected;
     Graph* graph;
 
+    sf::RectangleShape highlighter;
+    bool held = false;
+
     EditBox nodeval;
     Dropdown rightclick;
     const sf::RenderTexture* renderer;

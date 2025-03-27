@@ -64,14 +64,14 @@ int main(int argc, char** argv) {
 
     sf::ContextSettings ctx;
     ctx.antialiasingLevel = 16;
-    sf::RenderWindow window(sf::VideoMode(800, 800), "Graphs", sf::Style::Default, ctx);
+    sf::RenderWindow window(sf::VideoMode(1600, 1000), "Vertex", sf::Style::Default, ctx);
     window.setFramerateLimit(60);
     sf::Event event;
     sf::RenderTexture texture;
     texture.create(1920, 1280, ctx);
     texture.setSmooth(true);
 
-    auto grid = get_grid(sf::Vector2f(0.f, 0.f), sf::Vector2f(800.f, 800.f));
+    auto grid = get_grid(sf::Vector2f(0.f, 0.f), sf::Vector2f(1600.f, 1000.f));
 
     sf::Font _font1;
     sf::Font _font2;
@@ -83,8 +83,12 @@ int main(int argc, char** argv) {
         graph.load_from_file(argv[1]);
         log_info("loaded graph file: \"" << argv[1] << "\"");
     } else {
+#ifdef DEBUG
         graph.load_from_file("res/test.graph");
         log_info("loaded graph file: \"${app}/res/test.graph\"");
+#else
+        graph.load_from_file("res/empty.graph");
+#endif
     }
     GraphEditor editor = GraphEditor(&graph, &texture);
     GraphSettings settings = GraphSettings(&graph);

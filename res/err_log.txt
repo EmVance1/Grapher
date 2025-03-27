@@ -1,1 +1,2 @@
 Failed to load font "C:/Users/ayv20/cpp/vertex/bin/release/res/cmunrm.ttf" (failed to create the font face)
+Failed to load font "C:/Users/ayv20/cpp/vertex/bin/release/res/ArialNova.ttf" (failed to create the font face)

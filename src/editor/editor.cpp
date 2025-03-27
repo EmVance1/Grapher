@@ -7,7 +7,10 @@ GraphEditor::GraphEditor(Graph* _graph, const sf::RenderTexture* texture)
     nodeval(sf::Vector2f(250, 200), "new value", Graph::get_gui_font(), ""),
     rightclick(sf::Vector2f(600, 10), { "Create", "Rename", "Hide", "Delete", "Connect", "Disconnect" }, Graph::get_gui_font(), 150),
     renderer(texture)
-{}
+{
+    highlighter.setFillColor(sf::Color(200, 200, 200, 100));
+    highlighter.setOutlineThickness(2);
+}
 
 
 bool GraphEditor::create_vertex(const sf::Vector2f& pos) {
@@ -152,23 +155,44 @@ void GraphEditor::handle_event(const sf::Event& event, const sf::View& graphview
                 if (s) {
                     selected.push_back(s);
                     s->set_highlighted(true);
+                    clicked = true;
                 }
-                clicked = true;
             }
         } else if (event.mouseButton.button == sf::Mouse::Right) {
             rightclick.set_position(sf::Vector2f((float)event.mouseButton.x, (float)event.mouseButton.y));
             rightclick.set_open(true);
         }
+        if (!clicked) {
+            held = true;
+            const auto mapped = renderer->mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), graphview);
+            highlighter.setPosition(mapped);
+        }
         break;
     case sf::Event::MouseButtonReleased:
+        if (held) {
+            held = false;
+            highlighter.setFillColor(sf::Color::Transparent);
+            highlighter.setOutlineColor(sf::Color::Transparent);
+            selected.clear();
+            const auto rect = highlighter.getGlobalBounds();
+            for (auto& [_, v] : graph->m_vertices) {
+                if (v.intersects(rect)) {
+                    v.set_highlighted(true);
+                    selected.push_back(&v);
+                }
+            }
+        }
         clicked = false;
         break;
     case sf::Event::MouseMoved:
-        if (selected.size() == 1) {
-            if (clicked) {
-                const auto mapped = renderer->mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y), graphview);
-                selected[0]->set_position(mapped);
-            }
+        if (clicked) {
+            const auto mapped = renderer->mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y), graphview);
+            selected[0]->set_position(mapped);
+        } else if (held) {
+            const auto mapped = renderer->mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y), graphview);
+            highlighter.setOutlineColor(sf::Color(0, 220, 255, 255));
+            highlighter.setFillColor(sf::Color(200, 200, 200, 100));
+            highlighter.setSize(mapped - highlighter.getPosition());
         }
         break;
     default:
@@ -181,5 +205,6 @@ void GraphEditor::draw(sf::RenderTarget& target) {
         nodeval.draw(target);
     }
     rightclick.draw(target);
+    target.draw(highlighter);
 }
 
