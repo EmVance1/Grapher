@@ -11,6 +11,8 @@ private:
     sf::RectangleShape cursor;
     sf::Text value;
     sf::Text label;
+    size_t pos = 0;
+    std::string cancel;
 
 public:
     EditBox(const sf::Vector2f& pos, const std::string& _label, const sf::Font& font, std::string init = "");

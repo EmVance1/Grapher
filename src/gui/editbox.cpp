@@ -39,28 +39,55 @@ EditBox::EditBox(const sf::Vector2f& pos, const std::string& _value, const sf::F
     bounds.top = pos.y + 40;
     bounds.width = 250;
     bounds.height = 30;
+
+    cancel = init;
 }
 
 void EditBox::set_active(const std::string& val) {
     focus = true;
     value.setString(val);
     cursor.setPosition(value.getPosition() + sf::Vector2f(value.getGlobalBounds().width, 0));
+    cancel = val;
 }
 
 bool EditBox::handle_event(const sf::Event& event) {
     switch (event.type) {
     case sf::Event::KeyPressed:
-        if (event.key.code == sf::Keyboard::Return) {
-            focus = false;
-        } else if (event.key.code == sf::Keyboard::BackSpace) {
-            value.setString(value.getString().substring(0, value.getString().getSize() - 1));
-            cursor.setPosition(value.getPosition() + sf::Vector2f(value.getGlobalBounds().width, 0));
+        switch (event.key.code) {
+            case sf::Keyboard::Return:
+                focus = false;
+                break;
+            case sf::Keyboard::BackSpace:
+                if (!value.getString().isEmpty()) {
+                    value.setString(value.getString().substring(0, value.getString().getSize() - 1));
+                    cursor.setPosition(value.getPosition() + sf::Vector2f(value.getGlobalBounds().width, 0));
+                    // pos--;
+                }
+                break;
+            case sf::Keyboard::Escape:
+                value.setString(cancel);
+                focus = false;
+                break;
+            case sf::Keyboard::Left:
+                // if (pos > 0) {
+                //     pos--;
+                // }
+                break;
+            case sf::Keyboard::Right:
+                // if (pos < value.getString().getSize()) {
+                //     pos++;
+                // }
+                break;
+            default:
+                break;
         }
         return true;
     case sf::Event::TextEntered:
         if (event.text.unicode >= 32) {
-            value.setString(value.getString() + event.text.unicode);
+            auto temp = value.getString() + event.text.unicode;
+            value.setString(temp);
             cursor.setPosition(value.getPosition() + sf::Vector2f(value.getGlobalBounds().width, 0));
+            // pos++;
         }
         return true;
     default:
