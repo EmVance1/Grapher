@@ -166,6 +166,7 @@ void GraphEditor::handle_event(const sf::Event& event, const sf::View& graphview
             held = true;
             const auto mapped = renderer->mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), graphview);
             highlighter.setPosition(mapped);
+            highlighter.setSize(sf::Vector2f(0, 0));
         }
         break;
     case sf::Event::MouseButtonReleased:

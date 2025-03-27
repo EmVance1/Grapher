@@ -73,14 +73,8 @@ void VertexDisplay::set_content_size(uint32_t size) {
 
 
 bool VertexDisplay::contains(const sf::Vector2f& pos) const {
-    const auto center = get_position();
-    const auto dir = pos - center;
-    return dir.x * dir.x + dir.y * dir.y < 40.f * 40.f;
-    if (!hidden) {
-        return dir.x * dir.x + dir.y * dir.y < 40.f * 40.f;
-    } else {
-        return dir.x * dir.x + dir.y * dir.y < 20.f * 20.f;
-    }
+    const auto radius = hidden ? 20.f : 40.f;
+    return circle_point(get_position(), radius, pos);
 }
 
 bool VertexDisplay::intersects(const sf::FloatRect& rect) const {
