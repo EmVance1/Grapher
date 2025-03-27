@@ -5,6 +5,8 @@
 #include "files.h"
 #include "img.h"
 
+#include "log/log.h"
+
 
 float down_to_nearest(float x, int m) {
     return x - (float)((int)x % m);
@@ -56,6 +58,10 @@ sf::VertexArray get_hex() {
 
 
 int main(int argc, char** argv) {
+    FILE* _junk = nullptr;
+    // freopen_s(&_junk, "res/info_log.txt", "w", stdout);
+    // freopen_s(&_junk, "res/err_log.txt", "w", stderr);
+
     sf::ContextSettings ctx;
     ctx.antialiasingLevel = 16;
     sf::RenderWindow window(sf::VideoMode(800, 800), "Graphs", sf::Style::Default, ctx);
@@ -67,14 +73,18 @@ int main(int argc, char** argv) {
 
     auto grid = get_grid(sf::Vector2f(0.f, 0.f), sf::Vector2f(800.f, 800.f));
 
-    sf::Font _font;
-    Graph::CMU_SERIF = &_font;
-    Graph::init_font();
+    sf::Font _font1;
+    sf::Font _font2;
+    Graph::CMU_SERIF = &_font1;
+    Graph::GUI_FONT = &_font2;
+    Graph::init_fonts();
     Graph graph = Graph(false);
     if (argc == 2) {
         graph.load_from_file(argv[1]);
+        log_info("loaded graph file: \"" << argv[1] << "\"");
     } else {
         graph.load_from_file("res/test.graph");
+        log_info("loaded graph file: \"${app}/res/test.graph\"");
     }
     GraphEditor editor = GraphEditor(&graph, &texture);
     GraphSettings settings = GraphSettings(&graph);
@@ -155,8 +165,8 @@ int main(int argc, char** argv) {
         texture.setView(graphview);
         texture.draw(grid);
         graph.draw(texture);
-        editor.draw(texture);
         texture.setView(guiview);
+        editor.draw(texture);
         settings.draw(texture);
         texture.display();
 

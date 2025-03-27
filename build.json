@@ -2,8 +2,8 @@
     "project": "vertex",
     "cpp": "c++17",
     "pch": "pch.h",
-    "dependencies": [ "../_Libs/SFML-msvc.static_windows" ],
+    "dependencies": [ "../_Libs/SFML-msvc.static" ],
 
-    "linker_options": [ "/SUBSYSTEM:WINDOWS" ]
+    "linker_options": [ "/SUBSYSTEM:CONSOLE" ]
 }
 
