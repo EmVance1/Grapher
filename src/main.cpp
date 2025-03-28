@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
     window.setFramerateLimit(60);
     sf::Event event;
     sf::RenderTexture texture;
-    texture.create(1920, 1080, ctx);
+    texture.create(1920, 1280, ctx);
     texture.setSmooth(true);
 
     auto grid = get_grid(sf::Vector2f(0.f, 0.f), sf::Vector2f(1600.f, 1000.f));
@@ -38,12 +38,13 @@ int main(int argc, char** argv) {
 #ifdef DEBUG
         graph.load_from_file("res/test.graph");
         log_info("loaded graph file: \"${app}/res/test.graph\"");
-#else
-        graph.load_from_file("res/empty.graph");
 #endif
     }
-    GraphEditor editor = GraphEditor(&graph, &texture);
+    GraphEditor editor = GraphEditor(&graph, &window, &texture);
     GraphSettings settings = GraphSettings(&graph, &window);
+    if (argc == 2) {
+        settings.current_file = argv[1];
+    }
     sf::View graphview = texture.getDefaultView();
     const sf::View guiview = texture.getDefaultView();
     sf::View windowview = window.getDefaultView();
@@ -64,34 +65,49 @@ int main(int argc, char** argv) {
         switch (event.type) {
             case sf::Event::Closed:
                 window.close();
-                return 69;
+                return 0;
             case sf::Event::Resized:
                 windowview.setSize((float)event.size.width, (float)event.size.height);
                 windowview.setCenter((float)event.size.width * 0.5f, (float)event.size.height * 0.5f);
                 grid = get_grid(graphview.getCenter() - graphview.getSize() * 0.5f, graphview.getCenter() + graphview.getSize() * 0.5f);
                 break;
             case sf::Event::KeyPressed:
-                if (event.key.code == sf::Keyboard::S && event.key.control) {
-                    auto f = saveFileName(window.getSystemHandle(), "Graph File (*.graph)\0*.graph\0");
-                    auto stem = f.path.replace_extension().generic_string();
-                    if (!stem.empty()) {
-                        graph.save_to_file(stem + ".graph");
-                    }
-                }
-                if (event.key.code == sf::Keyboard::E && event.key.control) {
-                    auto f = saveFileName(window.getSystemHandle(), "SVG Image (*.svg)\0*.svg\0PNG Image (*.png)\0*.png\0");
-                    auto stem = f.path.replace_extension().generic_string();
-                    if (!stem.empty()) {
-                        if (f.type == 1) {
-                            graph.export_svg(stem + ".svg");
-                        } else if (f.type == 2) {
-                            auto temp = texture.getDefaultView();
-                            temp.zoom(0.8f);
-                            texture.setView(temp);
-                            texture.clear(sf::Color::White);
-                            graph.draw(texture, true);
-                            texture.display();
-                            export_image(stem + ".png", texture.getTexture(), 20);
+                if (event.key.control) {
+                    if (event.key.code == sf::Keyboard::N) {
+                        if (!graph.is_changed()) {
+                            settings.current_file = "";
+                            graph.reset();
+                        }
+                    } else if (event.key.code == sf::Keyboard::O) {
+                        if (!graph.is_changed()) {
+                            auto f = openFileName(window.getSystemHandle(), "Graph File (*.graph)\0*.graph\0");
+                            settings.current_file = f.path.generic_string();
+                            graph.load_from_file(settings.current_file);
+                        }
+                    } else if (event.key.code == sf::Keyboard::S) {
+                        if (settings.current_file == "") {
+                            auto f = saveFileName(window.getSystemHandle(), "Graph File (*.graph)\0*.graph\0");
+                            auto stem = f.path.replace_extension().generic_string();
+                            if (!stem.empty()) {
+                                settings.current_file = stem + ".graph";
+                            }
+                        }
+                        graph.save_to_file(settings.current_file);
+                    } else if (event.key.code == sf::Keyboard::E) {
+                        auto f = saveFileName(window.getSystemHandle(), "SVG Image (*.svg)\0*.svg\0PNG Image (*.png)\0*.png\0");
+                        auto stem = f.path.replace_extension().generic_string();
+                        if (!stem.empty()) {
+                            if (f.type == 1) {
+                                graph.export_svg(stem + ".svg");
+                            } else if (f.type == 2) {
+                                auto temp = texture.getDefaultView();
+                                temp.zoom(0.8f);
+                                texture.setView(temp);
+                                texture.clear(sf::Color::White);
+                                graph.draw(texture, true);
+                                texture.display();
+                                export_image(stem + ".png", texture.getTexture(), 20);
+                            }
                         }
                     }
                 }

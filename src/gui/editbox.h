@@ -11,14 +11,14 @@ private:
     sf::RectangleShape cursor;
     sf::Text value;
     sf::Text label;
-    size_t pos = 0;
     std::string cancel;
 
 public:
-    EditBox(const sf::Vector2f& pos, const std::string& _label, const sf::Font& font, std::string init = "");
+    EditBox(const sf::Vector2f& pos, const std::string& _label, const sf::Font& font, const sf::Font& guifont, std::string init = "");
 
     const sf::String& get_value() const { return value.getString(); }
 
+    void set_position(const sf::Vector2f& pos);
     void set_active(const std::string& val);
     bool is_focused() { return focus; }
 

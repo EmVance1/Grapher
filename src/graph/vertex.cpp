@@ -54,14 +54,16 @@ void VertexDisplay::set_position(const sf::Vector2f& pos, GridSnap snap) {
     p.y = std::floor(p.y);
     circle_shape.setPosition(p);
     const auto bounds = content.getGlobalBounds();
-    content.setPosition(sf::Vector2f(p.x - bounds.width / 2, p.y - bounds.height));
+    const auto height = (float)content.getCharacterSize() * 0.3f;
+    content.setPosition(sf::Vector2f(p.x - bounds.width / 2, p.y - height));
 }
 
 void VertexDisplay::set_value(const std::string& val) {
     content.setString(val);
     const auto pos = get_position();
     const auto bounds = content.getGlobalBounds();
-    content.setPosition(sf::Vector2f(pos.x - bounds.width / 2, pos.y - bounds.height));
+    const auto height = (float)content.getCharacterSize() * 0.3f;
+    content.setPosition(sf::Vector2f(pos.x - bounds.width / 2, pos.y - height));
 }
 
 void VertexDisplay::set_content_size(uint32_t size) {
@@ -69,7 +71,8 @@ void VertexDisplay::set_content_size(uint32_t size) {
     content.setScale(0.5f, 0.5f);
     const auto pos = get_position();
     const auto bounds = content.getGlobalBounds();
-    content.setPosition(sf::Vector2f(pos.x - bounds.width / 2, pos.y - bounds.height));
+    const auto height = (float)content.getCharacterSize() * 0.3f;
+    content.setPosition(sf::Vector2f(pos.x - bounds.width / 2, pos.y - height));
 }
 
 
@@ -127,7 +130,7 @@ std::string VertexDisplay::as_svg_element(const sf::Vector2f& offset) const {
         elem += "\t<text x=\"" + std::to_string(get_position().x - offset.x)
                    + "\" y=\"" + std::to_string(get_position().y - offset.y + 10)
                    + "\" font-family=\"CMU Serif\" font-size=\""
-                   + std::to_string(content.getCharacterSize()) + "\" text-anchor=\"middle\" fill=\"black\">"
+                   + std::to_string(content.getCharacterSize() * 0.5) + "\" text-anchor=\"middle\" fill=\"black\">"
                    // + std::to_string(content.getCharacterSize()) + "\" font-style=\"italic\" text-anchor=\"middle\" fill=\"black\">"
                    + content.getString() + "</text>\n";
         return elem;

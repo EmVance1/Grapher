@@ -2,10 +2,8 @@
 #include "graph.h"
 
 
-// sf::Font Graph::CMU_SERIF;
-
-
 void Graph::load_from_file(const std::string& filename) {
+    reset();
     std::ifstream f(filename);
     std::string line;
     int count = 0;

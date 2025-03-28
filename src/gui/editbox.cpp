@@ -2,7 +2,7 @@
 #include "editbox.h"
 
 
-EditBox::EditBox(const sf::Vector2f& pos, const std::string& _value, const sf::Font& font, std::string init) {
+EditBox::EditBox(const sf::Vector2f& pos, const std::string& _value, const sf::Font& font, const sf::Font& guifont, std::string init) {
     window.setPosition(pos);
     window.setSize(sf::Vector2f(300, 80));
     window.setOutlineThickness(1);
@@ -26,7 +26,7 @@ EditBox::EditBox(const sf::Vector2f& pos, const std::string& _value, const sf::F
     label.setPosition(pos + sf::Vector2f(30, 0));
     label.setCharacterSize(25);
     label.setFillColor(sf::Color::Black);
-    label.setFont(font);
+    label.setFont(guifont);
     label.setString(_value);
 
     value.setPosition(pos + sf::Vector2f(30, 40));
@@ -41,6 +41,15 @@ EditBox::EditBox(const sf::Vector2f& pos, const std::string& _value, const sf::F
     bounds.height = 30;
 
     cancel = init;
+}
+
+void EditBox::set_position(const sf::Vector2f& pos) {
+    window.setPosition(pos);
+    shape.setPosition(pos + sf::Vector2f(25, 40));
+    label.setPosition(pos + sf::Vector2f(30, 0));
+    value.setPosition(pos + sf::Vector2f(30, 40));
+    cursor.setPosition(value.getPosition() + sf::Vector2f(value.getGlobalBounds().width, 0));
+    bounds.left = pos.x + 25;
 }
 
 void EditBox::set_active(const std::string& val) {

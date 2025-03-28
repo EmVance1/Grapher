@@ -19,6 +19,8 @@ private:
     inline static constexpr uint32_t maj_ver = 0;
     inline static constexpr uint32_t min_ver = 1;
 
+    bool changed = false;
+
 public:
     inline static sf::Font* CMU_SERIF;
     inline static sf::Font* GUI_FONT;
@@ -34,6 +36,8 @@ public:
     void load_from_file(const std::string& filename);
     void save_to_file(const std::string& filename) const;
     void export_svg(const std::string& filename) const;
+    void reset() { m_vertices.clear(); m_directed = false; s_fontsize = 26; changed = false; };
+    bool is_changed() const { return changed; }
 
     void set_directed(bool directed) { m_directed = directed; }
     bool is_directed() const { return m_directed; }

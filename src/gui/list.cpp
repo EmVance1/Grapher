@@ -9,7 +9,7 @@ ListItem::ListItem(const sf::Vector2f& pos, const std::string& _value, const sf:
     // shape.setOutlineColor(sf::Color::Black);
     shape.setFillColor(sf::Color(140, 200, 240));
 
-    label.setPosition(pos + sf::Vector2f(10, 0));
+    label.setPosition(pos + sf::Vector2f(20, 0));
     label.setCharacterSize(25);
     label.setFillColor(sf::Color::Black);
     label.setFont(font);

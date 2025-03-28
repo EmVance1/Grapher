@@ -5,6 +5,7 @@
 Dropdown::Dropdown(const sf::Vector2f& pos, const std::vector<std::string>& values, const sf::Font& font, float width, bool dynwidth)
     : top(pos, values[0], font, width)
 {
+    top.label.setPosition(pos + sf::Vector2f(10, 0));
     top.shape.setOutlineThickness(1);
     top.shape.setOutlineColor(sf::Color::Black);
     float h = 30.f;
@@ -48,6 +49,7 @@ void Dropdown::draw(sf::RenderTarget& target) const {
 DropdownSelect::DropdownSelect(const sf::Vector2f& pos, const std::vector<std::string>& values, const sf::Font& font, float width, bool dynwidth)
     : active(pos, values[0], font, width)
 {
+    active.label.setPosition(pos + sf::Vector2f(10, 0));
     active.shape.setOutlineThickness(1);
     active.shape.setOutlineColor(sf::Color::Black);
     float h = 30.f;

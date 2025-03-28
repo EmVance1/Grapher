@@ -13,6 +13,7 @@ public:
     ToggleButton(const sf::Vector2f& pos, const std::string& value, const sf::Font& font, bool init = false);
 
     bool get_value() const { return set; }
+    void set_value(bool val) { set = val; }
 
     bool handle_event(const sf::Event& event);
     void draw(sf::RenderTarget& target) const;
