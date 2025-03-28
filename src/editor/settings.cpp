@@ -90,9 +90,9 @@ void GraphSettings::handle_event(const sf::Event& event) {
     }
 
     graph->m_directed = directed.get_value();
-    Graph::s_fontsize = (int)(fontsize.get_value() * 20.f + 20.f);
 
     if (fontsize.handle_event(event)) {
+        Graph::s_fontsize = (int)(fontsize.get_value() * 20.f + 20.f);
         for (auto& [_, v] : graph->m_vertices) {
             v.set_content_size(Graph::s_fontsize);
         }
