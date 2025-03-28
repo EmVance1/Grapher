@@ -9,7 +9,7 @@ GraphEditor::GraphEditor(Graph* _graph, const sf::RenderWindow* _window, const s
     renderer(texture)
 {
     highlighter.setFillColor(sf::Color(200, 200, 200, 100));
-    highlighter.setOutlineThickness(2);
+    highlighter.setOutlineThickness(1.5f);
 }
 
 
@@ -163,8 +163,9 @@ void GraphEditor::handle_event(const sf::Event& event, const sf::View& graphview
         }
         if (!clicked) {
             held = true;
-            const auto mapped = renderer->mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), graphview);
-            highlighter.setPosition(mapped);
+            // const auto mapped = renderer->mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), graphview);
+            const auto pos = sf::Vector2f((float)event.mouseButton.x, (float)event.mouseButton.y);
+            highlighter.setPosition(pos);
             highlighter.setSize(sf::Vector2f(0, 0));
         }
         break;
@@ -173,7 +174,10 @@ void GraphEditor::handle_event(const sf::Event& event, const sf::View& graphview
             held = false;
             highlighter.setFillColor(sf::Color::Transparent);
             highlighter.setOutlineColor(sf::Color::Transparent);
-            const auto rect = highlighter.getGlobalBounds();
+            const auto bounds = highlighter.getGlobalBounds();
+            const auto map_tl = renderer->mapPixelToCoords(sf::Vector2i((int)bounds.left, (int)bounds.top), graphview);
+            const auto map_br = renderer->mapPixelToCoords(sf::Vector2i((int)(bounds.left + bounds.width), (int)(bounds.top + bounds.height)), graphview);
+            const auto rect = sf::FloatRect(map_tl.x, map_tl.y, std::abs(map_br.x - map_tl.x), std::abs(map_br.y - map_tl.y));
             if (rect.width * rect.height > 4.f) {
                 for (auto& v : selected) {
                     v->set_highlighted(false);
@@ -194,10 +198,11 @@ void GraphEditor::handle_event(const sf::Event& event, const sf::View& graphview
             const auto mapped = renderer->mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y), graphview);
             selected[0]->set_position(mapped);
         } else if (held) {
-            const auto mapped = renderer->mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y), graphview);
+            // const auto mapped = renderer->mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y), graphview);
+            const auto pos = sf::Vector2f((float)event.mouseMove.x, (float)event.mouseMove.y);
             highlighter.setOutlineColor(sf::Color(0, 220, 255, 255));
             highlighter.setFillColor(sf::Color(200, 200, 200, 100));
-            highlighter.setSize(mapped - highlighter.getPosition());
+            highlighter.setSize(pos - highlighter.getPosition());
         }
         break;
     default:
@@ -207,8 +212,6 @@ void GraphEditor::handle_event(const sf::Event& event, const sf::View& graphview
 
 void GraphEditor::draw(sf::RenderTarget& target) {
     target.draw(highlighter);
-    const sf::View guiview = target.getDefaultView();
-    target.setView(guiview);
     if (nodeval.is_focused()) {
         nodeval.draw(target);
     }
