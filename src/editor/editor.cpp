@@ -206,10 +206,12 @@ void GraphEditor::handle_event(const sf::Event& event, const sf::View& graphview
 }
 
 void GraphEditor::draw(sf::RenderTarget& target) {
+    target.draw(highlighter);
+    const sf::View guiview = target.getDefaultView();
+    target.setView(guiview);
     if (nodeval.is_focused()) {
         nodeval.draw(target);
     }
     rightclick.draw(target);
-    target.draw(highlighter);
 }
 

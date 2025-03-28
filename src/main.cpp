@@ -140,8 +140,8 @@ int main(int argc, char** argv) {
         texture.setView(graphview);
         texture.draw(grid);
         graph.draw(texture);
-        texture.setView(guiview);
         editor.draw(texture);
+        texture.setView(guiview);
         settings.draw(texture);
         texture.display();
 
