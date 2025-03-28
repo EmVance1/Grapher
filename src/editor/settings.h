@@ -13,10 +13,12 @@ private:
     Graph* graph;
     const sf::RenderWindow* window;
 
+    Dropdown loadsave;
     ToggleButton directed;
     Slider fontsize;
-    Dropdown loadsave;
 
+public:
+    std::string current_file = "";
 
 public:
     GraphSettings(Graph* _graph, const sf::RenderWindow* window);

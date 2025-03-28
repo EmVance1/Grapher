@@ -5,9 +5,9 @@
 
 
 GraphSettings::GraphSettings(Graph* _graph, const sf::RenderWindow* _window): graph(_graph), window(_window),
-    directed(sf::Vector2f(10, 10), "Directed", Graph::get_gui_font(), graph->is_directed()),
-    fontsize(sf::Vector2f(250, 10), "Fontsize", Graph::get_gui_font(), ((float)graph->get_fontsize()-1.f) / 39.f),
-    loadsave(sf::Vector2f(600, 10), { "File", "Save", "Save As", "Open", "Export" }, Graph::get_gui_font(), 150)
+    loadsave(sf::Vector2f(10, 10), { "File", "New", "Open", "Save", "Save As", "Export" }, Graph::get_gui_font(), 150),
+    directed(sf::Vector2f(200, 10), "Directed", Graph::get_gui_font(), graph->is_directed()),
+    fontsize(sf::Vector2f(380, 10), "Fontsize", Graph::get_gui_font(), ((float)graph->get_fontsize()-1.f) / 39.f)
 {
     toolbar.setPosition(sf::Vector2f(0, 0));
     toolbar.setSize(sf::Vector2f(2000, 50));
@@ -24,17 +24,50 @@ void GraphSettings::handle_event(const sf::Event& event) {
     directed.handle_event(event);
     if (loadsave.handle_event(event)) {
         switch (loadsave.get_index()) {
-            case 0: case 1: {
+            case 0: {
+                if (graph->is_changed()) {
+                    // do save
+                }
+                if (!graph->is_changed()) {
+                    current_file = "";
+                    graph->reset();
+                    directed.set_value(false);
+                    graph->changed = false;
+                }
+                break; }
+            case 1: {
+                if (graph->is_changed()) {
+                    // do save
+                }
+                if (!graph->is_changed()) {
+                    auto f = openFileName(window->getSystemHandle(), "Graph File (*.graph)\0*.graph\0");
+                    current_file = f.path.generic_string();
+                    graph->load_from_file(current_file);
+                    directed.set_value(graph->is_directed());
+                    graph->changed = false;
+                }
+                break; }
+            case 2: {
+                if (current_file == "") {
+                    auto f = saveFileName(window->getSystemHandle(), "Graph File (*.graph)\0*.graph\0");
+                    auto stem = f.path.replace_extension().generic_string();
+                    if (!stem.empty()) {
+                        current_file = stem + ".graph";
+                    }
+                }
+                graph->save_to_file(current_file);
+                graph->changed = false;
+                break; }
+            case 3: {
                 auto f = saveFileName(window->getSystemHandle(), "Graph File (*.graph)\0*.graph\0");
                 auto stem = f.path.replace_extension().generic_string();
                 if (!stem.empty()) {
-                    graph->save_to_file(stem + ".graph");
+                    current_file = stem + ".graph";
+                    graph->save_to_file(current_file);
                 }
+                graph->changed = false;
                 break; }
-            case 2:{
-                // TODO
-                break; }
-            case 3: {
+            case 4: {
                 auto f = saveFileName(window->getSystemHandle(), "SVG Image (*.svg)\0*.svg\0PNG Image (*.png)\0*.png\0");
                 auto stem = f.path.replace_extension().generic_string();
                 if (!stem.empty()) {

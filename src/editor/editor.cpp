@@ -2,10 +2,10 @@
 #include "editor.h"
 
 
-GraphEditor::GraphEditor(Graph* _graph, const sf::RenderTexture* texture)
-    : graph(_graph),
-    nodeval(sf::Vector2f(250, 200), "new value", Graph::get_gui_font(), ""),
-    rightclick(sf::Vector2f(600, 10), { "Create", "Rename", "Hide", "Delete", "Connect", "Disconnect" }, Graph::get_gui_font(), 150),
+GraphEditor::GraphEditor(Graph* _graph, const sf::RenderWindow* _window, const sf::RenderTexture* texture)
+    : graph(_graph), window(_window),
+    nodeval(sf::Vector2f(250, 200), "new value", Graph::get_font(), Graph::get_gui_font(), ""),
+    rightclick(sf::Vector2f(600, 10), { "Create", "Rename", "Hide", "Delete", "Connect", "Disconnect" }, Graph::get_gui_font(), 200),
     renderer(texture)
 {
     highlighter.setFillColor(sf::Color(200, 200, 200, 100));
@@ -28,6 +28,7 @@ bool GraphEditor::create_vertex(const sf::Vector2f& pos) {
 bool GraphEditor::rename_vertex() {
     if (selected.size() == 1) {
         nodeval.set_active(selected[0]->get_value());
+        nodeval.set_position(sf::Vector2f(window->getSize()) * 0.5f - sf::Vector2f(300, 80) * 0.5f);
         return true;
     }
     return false;
@@ -74,9 +75,7 @@ bool GraphEditor::split_vertices() {
 void GraphEditor::handle_event(const sf::Event& event, const sf::View& graphview) {
     if (nodeval.is_focused()) {
         nodeval.handle_event(event);
-        if (!nodeval.is_focused()) {
-            graph->get_vertex_mut(selected[0]->id)->set_value(nodeval.get_value());
-        }
+        graph->get_vertex_mut(selected[0]->id)->set_value(nodeval.get_value());
         return;
     }
     if (rightclick.handle_event(event)) {

@@ -12,6 +12,7 @@ private:
     bool clicked = false;
     std::vector<Vertex*> selected;
     Graph* graph;
+    const sf::RenderWindow* window;
 
     sf::RectangleShape highlighter;
     bool held = false;
@@ -29,7 +30,7 @@ private:
     bool split_vertices();
 
 public:
-    GraphEditor(Graph* _graph, const sf::RenderTexture* texture);
+    GraphEditor(Graph* _graph, const sf::RenderWindow* window, const sf::RenderTexture* texture);
 
     void handle_event(const sf::Event& event, const sf::View& graphview);
     void draw(sf::RenderTarget& target);
