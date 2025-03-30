@@ -1,5 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <variant>
+
 #include "graph/graph.h"
 
 #include "gui/toggle.h"

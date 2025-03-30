@@ -1,12 +1,13 @@
 #include "pch.h"
+#include <variant>
 #include "editor.h"
 
 
 GraphEditor::GraphEditor(Graph* _graph, const sf::RenderWindow* _window, const sf::RenderTexture* texture)
-    : graph(_graph), window(_window),
+    : graph(_graph),
     nodeval(sf::Vector2f(250, 200), "new value", Graph::get_font(), Graph::get_gui_font(), ""),
     rightclick(sf::Vector2f(600, 10), { "Create", "Rename", "Hide", "Delete", "Connect", "Disconnect" }, Graph::get_gui_font(), 200),
-    renderer(texture)
+    window(_window), renderer(texture)
 {
     highlighter.setFillColor(sf::Color(200, 200, 200, 100));
     highlighter.setOutlineThickness(1.5f);
@@ -22,11 +23,13 @@ bool GraphEditor::create_vertex(const sf::Vector2f& pos) {
     selected.clear();
     selected.push_back(s);
     s->set_highlighted(true);
+    push_history(OpCreate{ s->id });
     return true;
 }
 
 bool GraphEditor::rename_vertex() {
     if (selected.size() == 1) {
+        push_history(OpRename{ selected[0]->id, selected[0]->get_value() });
         nodeval.set_active(selected[0]->get_value());
         nodeval.set_position(sf::Vector2f(window->getSize()) * 0.5f - sf::Vector2f(300, 80) * 0.5f);
         return true;
@@ -36,9 +39,12 @@ bool GraphEditor::rename_vertex() {
 
 bool GraphEditor::hide_vertices() {
     if (!selected.empty()) {
+        auto op = OpHide{};
         for (const auto& v : selected) {
             graph->get_vertex_mut(v->id)->toggle_hidden();
+            op.vertices.push_back(v->id);
         }
+        push_history(op);
         return true;
     }
     return false;
@@ -46,10 +52,20 @@ bool GraphEditor::hide_vertices() {
 
 bool GraphEditor::delete_vertices() {
     if (!selected.empty()) {
+        auto op = OpDelete{};
         for (const auto& v : selected) {
-            graph->remove_vertex(v->id);
+            op.vertices.push_back(OpDeletedVertex{
+                v->id,
+                v->get_position(),
+                v->get_value(),
+                v->get_hidden(),
+                v->edges,
+                {}
+            });
+            op.vertices.back().incoming = graph->remove_vertex(v->id);
         }
         selected.clear();
+        push_history(op);
         return true;
     }
     return false;
@@ -58,6 +74,7 @@ bool GraphEditor::delete_vertices() {
 bool GraphEditor::join_vertices() {
     if (selected.size() == 2) {
         graph->connect(selected[0], selected[1]);
+        push_history(OpJoin{ selected[0]->id, selected[1]->id });
         return true;
     }
     return false;
@@ -66,9 +83,56 @@ bool GraphEditor::join_vertices() {
 bool GraphEditor::split_vertices() {
     if (selected.size() == 2) {
         graph->disconnect(selected[0], selected[1]);
+        push_history(OpSplit{ selected[0]->id, selected[1]->id });
         return true;
     }
     return false;
+}
+
+
+void GraphEditor::undo() {
+    if (history.empty()) {
+        return;
+    }
+    const auto op = history.back();
+    if (auto create = std::get_if<OpCreate>(&op)) {
+        graph->remove_vertex(create->vertex);
+        selected.clear();
+    } else if (auto rename = std::get_if<OpRename>(&op)) {
+        graph->m_vertices[rename->vertex].set_value(rename->oldname);
+    } else if (auto hide = std::get_if<OpHide>(&op)) {
+        for (const auto& v : hide->vertices) {
+            graph->m_vertices[v].toggle_hidden();
+        }
+    } else if (auto del = std::get_if<OpDelete>(&op)) {
+        for (auto v = del->vertices.rbegin(); v != del->vertices.rend(); v++) {
+            Vertex* s = graph->add_vertex_with_id(v->id, v->pos);
+            s->set_value(v->label);
+            s->set_hidden(v->hidden);
+            for (auto& e : v->outgoing) {
+                graph->connect(s->id, e);
+            }
+            for (auto& e : v->incoming) {
+                graph->connect(e, s->id);
+            }
+        }
+    } else if (auto join = std::get_if<OpJoin>(&op)) {
+        graph->disconnect(join->A, join->B);
+    } else if (auto split = std::get_if<OpSplit>(&op)) {
+        graph->connect(split->A, split->B);
+    } else if (auto move = std::get_if<OpMove>(&op)) {
+        for (const auto& v : move->vertices) {
+            graph->m_vertices[v].set_position(graph->m_vertices[v].get_position() - move->diff);
+        }
+    }
+    history.pop_back();
+}
+
+void GraphEditor::push_history(const EditOperation& op) {
+    history.push_back(op);
+    if (history.size() > 32) {
+        history.pop_front();
+    }
 }
 
 
@@ -128,6 +192,9 @@ void GraphEditor::handle_event(const sf::Event& event, const sf::View& graphview
         case sf::Keyboard::H:
             hide_vertices();
             break;
+        case sf::Keyboard::Z:
+            undo();
+            break;
         default:
             break;
         }
@@ -145,16 +212,28 @@ void GraphEditor::handle_event(const sf::Event& event, const sf::View& graphview
                     s->set_highlighted(true);
                 }
             } else {
-                for (auto& v : selected) {
-                    v->set_highlighted(false);
-                }
-                selected.clear();
                 const auto mapped = renderer->mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), graphview);
                 Vertex* s = graph->pick_vertex(mapped);
                 if (s) {
-                    selected.push_back(s);
-                    s->set_highlighted(true);
+                    const auto pos = std::find(selected.begin(), selected.end(), s);
+                    if (pos == selected.end()) {
+                        for (auto& v : selected) {
+                            v->set_highlighted(false);
+                        }
+                        selected.clear();
+                        selected.push_back(s);
+                        s->set_highlighted(true);
+                        selectidx = 0;
+                    } else {
+                        selectidx = pos - selected.begin();
+                    }
                     clicked = true;
+                    selectpos = selected[selectidx]->get_position();
+                } else {
+                    for (auto& v : selected) {
+                        v->set_highlighted(false);
+                    }
+                    selected.clear();
                 }
             }
         } else if (event.mouseButton.button == sf::Mouse::Right) {
@@ -163,7 +242,6 @@ void GraphEditor::handle_event(const sf::Event& event, const sf::View& graphview
         }
         if (!clicked) {
             held = true;
-            // const auto mapped = renderer->mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), graphview);
             const auto pos = sf::Vector2f((float)event.mouseButton.x, (float)event.mouseButton.y);
             highlighter.setPosition(pos);
             highlighter.setSize(sf::Vector2f(0, 0));
@@ -176,8 +254,8 @@ void GraphEditor::handle_event(const sf::Event& event, const sf::View& graphview
             highlighter.setOutlineColor(sf::Color::Transparent);
             const auto bounds = highlighter.getGlobalBounds();
             const auto map_tl = renderer->mapPixelToCoords(sf::Vector2i((int)bounds.left, (int)bounds.top), graphview);
-            const auto map_br = renderer->mapPixelToCoords(sf::Vector2i((int)(bounds.left + bounds.width), (int)(bounds.top + bounds.height)), graphview);
-            const auto rect = sf::FloatRect(map_tl.x, map_tl.y, std::abs(map_br.x - map_tl.x), std::abs(map_br.y - map_tl.y));
+            const auto map_br = renderer->mapPixelToCoords(sf::Vector2i((int)bounds.width, (int)bounds.height), graphview);
+            const auto rect = sf::FloatRect(map_tl.x, map_tl.y, map_br.x, map_br.y);
             if (rect.width * rect.height > 4.f) {
                 for (auto& v : selected) {
                     v->set_highlighted(false);
@@ -190,15 +268,32 @@ void GraphEditor::handle_event(const sf::Event& event, const sf::View& graphview
                     }
                 }
             }
+        } else if (clicked) {
+            const auto diff = selected[selectidx]->get_position() - selectpos;
+            if (std::abs(diff.x) > 0.0001f || std::abs(diff.y) > 0.0001f) {
+                auto op = OpMove{ std::vector<std::string>(), diff };
+                for (const auto& s : selected) {
+                    op.vertices.push_back(s->id);
+                }
+                push_history(op);
+            }
+            clicked = false;
         }
-        clicked = false;
         break;
     case sf::Event::MouseMoved:
         if (clicked) {
             const auto mapped = renderer->mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y), graphview);
-            selected[0]->set_position(mapped);
+            const auto last = selected[selectidx]->get_position();
+            selected[selectidx]->set_position(mapped);
+            const auto diff = selected[selectidx]->get_position() - last;
+            size_t i = 0;
+            for (auto& v : selected) {
+                if (i != selectidx) {
+                    v->set_position(v->get_position() + diff);
+                }
+                i++;
+            }
         } else if (held) {
-            // const auto mapped = renderer->mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y), graphview);
             const auto pos = sf::Vector2f((float)event.mouseMove.x, (float)event.mouseMove.y);
             highlighter.setOutlineColor(sf::Color(0, 220, 255, 255));
             highlighter.setFillColor(sf::Color(200, 200, 200, 100));

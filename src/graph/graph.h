@@ -1,7 +1,8 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include <string>
 #include <unordered_map>
+#include <unordered_set>
+#include <string>
 #include "vertex.h"
 #include "edge.h"
 
@@ -43,10 +44,11 @@ public:
     bool is_directed() const { return m_directed; }
 
     Vertex* add_vertex(const sf::Vector2f& position, const std::string& value = "");
+    Vertex* add_vertex_with_id(const std::string& id, const sf::Vector2f& position, const std::string& value = "");
     bool has_vertex(const std::string& id) const;
     const Vertex* get_vertex(const std::string& id) const;
     Vertex* get_vertex_mut(const std::string& id);
-    void remove_vertex(const std::string& id);
+    std::unordered_set<std::string> remove_vertex(const std::string& id);
 
     Vertex* pick_vertex(const sf::Vector2f& position);
 

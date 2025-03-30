@@ -106,12 +106,18 @@ Vertex* Graph::add_vertex(const sf::Vector2f& position, const std::string& value
     return &m_vertices[vertex.id];
 }
 
+Vertex* Graph::add_vertex_with_id(const std::string& id, const sf::Vector2f& position, const std::string& value) {
+    Vertex vertex = Vertex(id, position, value);
+    m_vertices[id] = vertex;
+    return &m_vertices[id];
+}
+
 bool Graph::has_vertex(const std::string& id) const {
     return m_vertices.find(id) != m_vertices.end();
 }
 
 const Vertex* Graph::get_vertex(const std::string& id) const {
-    auto n = m_vertices.find(id);
+    const auto n = m_vertices.find(id);
     if (n != m_vertices.end()) {
         return &n->second;
     } else {
@@ -128,19 +134,16 @@ Vertex* Graph::get_vertex_mut(const std::string& id) {
     }
 }
 
-void Graph::remove_vertex(const std::string& id) {
+std::unordered_set<std::string> Graph::remove_vertex(const std::string& id) {
+    auto old_edges = std::unordered_set<std::string>();
     for (auto& [_, v] : m_vertices) {
-        auto remset = std::unordered_set<std::string>();
-        for (const auto& e : v.edges) {
-            if (e == id) {
-                remset.insert(e);
-            }
-        }
-        for (const auto& e : remset) {
-            v.edges.erase(e);
+        if (std::find(v.edges.begin(), v.edges.end(), id) != v.edges.end()) {
+            v.edges.erase(id);
+            old_edges.insert(v.id);
         }
     }
     m_vertices.erase(id);
+    return old_edges;
 }
 
 Vertex* Graph::pick_vertex(const sf::Vector2f& position) {

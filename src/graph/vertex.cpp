@@ -159,6 +159,24 @@ Vertex::Vertex(const sf::Vector2f& pos, const std::string& value): id(Uuid::gene
     set_value(value);
 }
 
+Vertex::Vertex(const std::string& id, const sf::Vector2f& pos, const std::string& value): id(id) {
+    display.circle_shape.setRadius(40.f);
+    display.circle_shape.setFillColor(sf::Color::White);
+    display.circle_shape.setOutlineThickness(LINEWEIGHT);
+    display.circle_shape.setOutlineColor(sf::Color::Black);
+    display.circle_shape.setOrigin(sf::Vector2f(40.f, 40.f));
+
+    display.content.setFont(Graph::get_font());
+    display.content.setStyle(sf::Text::Regular);
+    display.content.setFillColor(sf::Color::Black);
+
+    set_content_size(Graph::get_fontsize());
+    set_position(pos);
+    set_value(value);
+}
+
+
+
 Vertex::Vertex(const Vertex& other): display(other.display), value(other.value), hidden(other.hidden), edges(other.edges), id(other.id) {}
 
 Vertex& Vertex::operator=(const Vertex& other) {

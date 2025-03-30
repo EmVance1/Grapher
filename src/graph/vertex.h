@@ -53,6 +53,7 @@ public:
 public:
     Vertex();
     Vertex(const sf::Vector2f& pos, const std::string& value);
+    Vertex(const std::string& id, const sf::Vector2f& pos, const std::string& value);
     Vertex(const Vertex& other);
     Vertex& operator=(const Vertex& other);
 
