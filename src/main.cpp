@@ -81,8 +81,11 @@ int main(int argc, char** argv) {
                     } else if (event.key.code == sf::Keyboard::O) {
                         if (!graph.is_changed()) {
                             auto f = openFileName(window.getSystemHandle(), "Graph File (*.graph)\0*.graph\0");
-                            settings.current_file = f.path.generic_string();
-                            graph.load_from_file(settings.current_file);
+                            const auto path = f.path.generic_string();
+                            if (!path.empty()) {
+                                settings.current_file = path;
+                                graph.load_from_file(settings.current_file);
+                            }
                         }
                     } else if (event.key.code == sf::Keyboard::S) {
                         if (settings.current_file == "") {

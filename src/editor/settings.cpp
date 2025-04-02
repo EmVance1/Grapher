@@ -41,8 +41,11 @@ void GraphSettings::handle_event(const sf::Event& event) {
                 }
                 if (!graph->is_changed()) {
                     auto f = openFileName(window->getSystemHandle(), "Graph File (*.graph)\0*.graph\0");
-                    current_file = f.path.generic_string();
-                    graph->load_from_file(current_file);
+                    const auto path = f.path.generic_string();
+                    if (!path.empty()) {
+                        current_file = path;
+                        graph->load_from_file(current_file);
+                    }
                     directed.set_value(graph->is_directed());
                     graph->changed = false;
                 }

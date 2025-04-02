@@ -276,6 +276,14 @@ void GraphEditor::handle_event(const sf::Event& event, const sf::View& graphview
                     op.vertices.push_back(s->id);
                 }
                 push_history(op);
+            } else {
+                Vertex* temp = selected[selectidx];
+                for (auto& v : selected) {
+                    v->set_highlighted(false);
+                }
+                selected.clear();
+                selected.push_back(temp);
+                temp->set_highlighted(true);
             }
             clicked = false;
         }
